@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Owner Portal - SRS Cashews</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: http://localhost:3000 data: blob:; connect-src 'self' https: http://localhost:3000 http://127.0.0.1:3000 wss: ws:; img-src 'self' https: data: blob:;">
+    <title>Owner Portal - AS Nuts</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="owner.css">
 </head>
@@ -12,14 +13,26 @@
     <header>
         <div class="container header-content">
             <div class="logo">
-                <div class="logo-text">SRS<span class="logo-highlight">Cashews</span> <span class="owner-badge">Owner Portal</span></div>
+                <div class="logo-main">
+                    <div class="logo-text">AS<span class="logo-highlight">Nuts</span></div>
+                    <span class="owner-badge">Owner Portal</span>
+                </div>
                 <div class="logo-subtitle">Panruti, Tamil Nadu</div>
             </div>
             <nav>
                 <ul>
-                    <li><a href="customer.html" class="nav-link">Back to Store</a></li>
-                    <li><a href="#" class="nav-link" data-page="dashboard">Dashboard</a></li>
-                    <li><a href="#" class="nav-link" data-page="sms">SMS Portal</a></li>
+                    <li><a href="customer.html" class="nav-link">
+                        <i class="fas fa-store"></i> Back to Store
+                    </a></li>
+                    <li><a href="#" class="nav-link" data-page="dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a></li>
+                    <li><a href="#" class="nav-link" data-page="sms">
+                        <i class="fas fa-sms"></i> SMS Portal
+                    </a></li>
+                    <li><a href="#" class="nav-link" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a></li>
                 </ul>
             </nav>
         </div>
@@ -32,17 +45,29 @@
             <div class="owner-background">
                 <div class="owner-portal">
                     <div class="owner-header">
-                        <h2>SRS Cashews Owner Portal</h2>
-                        <p>Manage your premium cashew products and customer orders from Panruti</p>
+                        <h2>AS Nuts Owner Portal</h2>
+                        <p>Manage your premium nut products and customer orders from Panruti</p>
                     </div>
                     
                     <div class="password-form">
                         <div class="login-icon">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-user-shield"></i>
                         </div>
-                        <h3>Enter Password to Access</h3>
-                        <input type="password" class="password-input" id="owner-password" placeholder="Enter admin password">
-                        <button class="btn btn-primary" id="login-btn">Login to Portal</button>
+                        <h3>Owner Login</h3>
+                        <div class="login-form">
+                            <input type="email" class="password-input" id="owner-email" placeholder="Enter owner email">
+                            <input type="password" class="password-input" id="owner-password" placeholder="Enter owner password">
+                            <button class="btn btn-primary" id="login-btn">Login to Portal</button>
+                        </div>
+                        <div class="login-error" id="login-error" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span>Invalid email or password. Please try again.</span>
+                        </div>
+                        <div class="default-credentials">
+                            <p><strong>Default Credentials:</strong></p>
+                            <p>Email: owner@asnuts.com</p>
+                            <p>Password: ASNuts2024!</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,7 +79,7 @@
                 <div class="owner-portal">
                     <div class="owner-header">
                         <h2>Owner Dashboard</h2>
-                        <p>Manage SRS Cashews products and monitor customer orders</p>
+                        <p>Manage AS Nuts products and monitor customer orders</p>
                     </div>
                     
                     <div class="stats-overview">
@@ -235,7 +260,7 @@
                 <div class="owner-portal">
                     <div class="owner-header">
                         <h2>SMS Notifications Portal</h2>
-                        <p>Send SMS notifications to SRS Cashews customers about their orders</p>
+                        <p>Send SMS notifications to AS Nuts customers about their orders</p>
                     </div>
                     
                     <div class="sms-portal-content">
@@ -275,6 +300,7 @@
     <div class="notification" id="notification">
         Changes saved successfully!
     </div>
+
 
     <script src="owner.js"></script>
 </body>

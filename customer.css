@@ -26,6 +26,13 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    direction: ltr;
+    transform: none !important;
+}
+
+html {
+    direction: ltr;
+    text-align: left;
 }
 
 body {
@@ -36,6 +43,9 @@ body {
     background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
+    direction: ltr;
+    text-align: left;
+    transform: none;
 }
 
 .container {
@@ -44,7 +54,7 @@ body {
     padding: 0 10px;
 }
 
-/* Header Styles - Transparent */
+/* Header Styles - Mobile First Responsive */
 header {
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(20px);
@@ -56,24 +66,34 @@ header {
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     transition: transform 0.3s ease;
     transform: translateY(0);
+    height: 60px;
+    overflow: visible;
+    contain: layout style;
 }
 
 .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0;
+    padding: 0 1.25rem;
+    height: 100%;
+    position: relative;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    order: 1;
+    flex: 0 0 auto;
+    z-index: 1003;
 }
 
 .logo-image {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     object-fit: cover;
     border: 2px solid var(--accent-gold);
@@ -81,12 +101,88 @@ header {
 }
 
 .logo-text {
-    font-size: 1.75rem;
+    font-size: 1.4rem;
     font-weight: 800;
 }
 
+/* Mobile Menu Button - Hidden by default (Desktop First) */
+.mobile-menu-btn {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    order: 3;
+    z-index: 1001;
+    flex: 0 0 auto;
+    margin-left: auto;
+}
+
+/* Show mobile menu button only on mobile */
+@media (max-width: 768px) {
+    .mobile-menu-btn {
+        display: flex !important;
+        position: relative !important;
+        z-index: 1003 !important;
+    }
+}
+
+/* Ensure desktop navigation is always visible on desktop */
+@media (min-width: 769px) {
+    .nav-menu {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .nav-menu ul {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .mobile-menu-btn {
+        display: none !important;
+    }
+}
+
+.hamburger-line {
+    width: 25px;
+    height: 3px;
+    background: var(--text-white);
+    margin: 2px 0;
+    transition: var(--transition);
+    border-radius: 2px;
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-btn.active .hamburger-line:nth-child(3) {
+    transform: rotate(-45deg) translate(7px, -6px);
+}
+
+/* Navigation Menu */
+.nav-menu {
+    order: 2;
+    flex: 0 0 auto;
+    margin-left: auto;
+    display: block;
+}
+
 main {
-    margin-top: 80px; /* Adjust based on your header height */
+    margin-top: 70px; /* Extra space to prevent hero text hiding */
+    padding-top: 0;
 }
 
 .logo-main {
@@ -108,19 +204,106 @@ main {
     font-weight: 600;
 }
 
+/* Desktop Navigation Styles (Default) */
 nav ul {
     display: flex;
     list-style: none;
     gap: 2rem;
+    margin: 0;
+    padding: 0;
+    flex-direction: row;
+    position: static;
+    width: auto;
+    height: auto;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    backdrop-filter: none;
 }
 
+/* Mobile Navigation Styles Override */
+@media (max-width: 768px) {
+    .nav-menu {
+        position: fixed !important;
+        top: 60px !important;
+        right: -100% !important;
+        width: 280px !important;
+        height: calc(100vh - 60px) !important;
+        background: rgba(15, 23, 42, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        transition: right 0.3s ease !important;
+        border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3) !important;
+        z-index: 1002 !important;
+        display: block !important;
+    }
+    
+    .nav-menu ul {
+        flex-direction: column !important;
+        padding: 2rem 1.5rem !important;
+        gap: 1rem !important;
+        height: 100% !important;
+        margin: 0 !important;
+    }
+    
+    /* Mobile menu active state */
+    .nav-menu.active {
+        right: 0 !important;
+    }
+}
+
+/* Desktop Navigation Links (Default) */
 nav a {
     text-decoration: none;
     color: var(--text-white);
     font-weight: 600;
     transition: var(--transition);
     position: relative;
-    padding: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    white-space: nowrap;
+    font-size: 1rem;
+    background: transparent;
+    border: none;
+}
+
+/* Mobile Navigation Link Styles Override */
+@media (max-width: 768px) {
+    .nav-menu a {
+        padding: 1rem 1.5rem !important;
+        border-radius: 12px !important;
+        font-size: 1.1rem !important;
+        min-height: 48px !important;
+        border: 1px solid transparent !important;
+        width: 100% !important;
+        justify-content: flex-start !important;
+    }
+}
+
+nav a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-gold), var(--primary-light));
+    transition: var(--transition);
+    transform: translateX(-50%);
+}
+
+nav a:hover::after,
+nav a.active::after {
+    width: 80%;
+}
+
+/* Desktop Navigation Hover (Default) */
+nav a:hover {
+    color: var(--accent-gold);
+    background: transparent;
 }
 
 nav a::after {
@@ -139,8 +322,17 @@ nav a.active::after {
     width: 100%;
 }
 
-nav a:hover {
-    color: var(--accent-gold);
+/* Mobile Navigation Hover Styles Override */
+@media (max-width: 768px) {
+    .nav-menu a:hover {
+        background: rgba(255, 140, 0, 0.1) !important;
+        border-color: rgba(255, 140, 0, 0.3) !important;
+        transform: translateX(5px) !important;
+    }
+    
+    .nav-menu a::after {
+        display: none !important;
+    }
 }
 
 .cart-count {
@@ -211,8 +403,12 @@ nav a:hover {
     width: 100%;
     background: linear-gradient(transparent, rgba(15, 23, 42, 0.9));
     color: var(--text-white);
-    padding: 3rem;
+    padding: 4rem 3rem 3rem;
     text-align: left;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
 .carousel-caption h2 {
@@ -451,8 +647,8 @@ nav a:hover {
     font-size: 0.95rem;
 }
 
-/* Panruti Special Section */
-.panruti-special {
+/* Ramapuram Special Section */
+.ramapuraspecial {
     background: linear-gradient(135deg, var(--dark-card), rgba(30, 58, 138, 0.3));
     border-radius: var(--radius);
     margin-bottom: 4rem;
@@ -1106,6 +1302,8 @@ nav a:hover {
     text-align: center;
     position: relative;
     overflow: hidden;
+    min-height: 44px; /* iOS recommended touch target */
+    touch-action: manipulation; /* Prevents zoom on double-tap */
 }
 
 .btn::before {
@@ -1453,13 +1651,16 @@ footer {
 .form-group input,
 .form-group textarea {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.875rem;
     border: 1px solid var(--border-light);
     border-radius: 8px;
     background: rgba(15, 23, 42, 0.8);
     color: var(--text-white);
     font-size: 1rem;
     transition: var(--transition);
+    min-height: 44px; /* Better touch target */
+    -webkit-appearance: none; /* Remove iOS styling */
+    appearance: none; /* Remove iOS styling */
 }
 
 .form-group input:focus,
@@ -1525,30 +1726,57 @@ footer {
 
 /* UPI Payment Details */
 .upi-details {
-    background: rgba(15, 23, 42, 0.8);
-    border: 1px solid var(--accent-gold);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin: 1rem 0;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 58, 138, 0.2));
+    border: 2px solid var(--accent-gold);
+    border-radius: var(--radius);
+    padding: 2rem;
+    margin: 1.5rem 0;
     animation: fadeIn 0.3s ease;
+    box-shadow: var(--shadow-lg);
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.upi-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .upi-header h5 {
-    color: var(--accent-gold);
+    color: var(--text-white);
     margin-bottom: 1rem;
-    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--text-white), var(--accent-gold));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.payment-amount {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-light));
+    color: var(--dark-bg);
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-size: 1.2rem;
+    font-weight: 800;
+    display: inline-block;
+    box-shadow: var(--shadow);
 }
 
 .upi-info {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: 2rem;
     align-items: center;
+    margin-bottom: 2rem;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .qr-code {
@@ -1556,60 +1784,425 @@ footer {
 }
 
 .qr-code img {
-    max-width: 120px;
-    border: 2px solid var(--accent-gold);
-    border-radius: 8px;
-    padding: 0.5rem;
+    max-width: 150px;
+    border: 3px solid var(--accent-gold);
+    border-radius: var(--radius);
+    padding: 0.75rem;
     background: white;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.qr-code img:hover {
+    transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+}
+
+.qr-instruction {
+    color: #cbd5e1;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+    font-weight: 600;
 }
 
 .upi-id {
     text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.upi-id strong {
+    color: var(--text-white);
+    display: block;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
 }
 
 .upi-address {
     background: var(--dark-bg);
-    padding: 0.75rem;
-    border-radius: 8px;
-    margin: 0.5rem 0;
-    font-family: monospace;
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin: 0.75rem 0;
+    font-family: 'Courier New', monospace;
     color: var(--accent-gold);
-    border: 1px solid var(--border-light);
+    border: 2px solid var(--border-light);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    word-break: break-all;
+    overflow-wrap: break-word;
+    text-align: center;
+    line-height: 1.4;
 }
 
 .btn-copy {
     background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
     color: var(--text-white);
     border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
+    padding: 0.75rem 1.25rem;
+    border-radius: var(--radius);
     cursor: pointer;
     transition: var(--transition);
     font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
 }
 
 .btn-copy:hover {
     background: linear-gradient(135deg, var(--accent-gold), var(--accent-light));
     color: var(--dark-bg);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* UPI Apps Section */
+.upi-apps {
+    margin: 2rem 0;
+}
+
+.upi-apps h6 {
+    color: var(--text-white);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.upi-app-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.upi-app-btn {
+    padding: 1rem 1.25rem;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    color: var(--text-white);
+    position: relative;
+    overflow: hidden;
+}
+
+.upi-app-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: var(--transition);
+}
+
+.upi-app-btn:hover::before {
+    left: 100%;
+}
+
+.upi-app-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.upi-app-btn:active {
+    transform: translateY(-1px);
+}
+
+/* Specific UPI app colors */
+.upi-app-btn:nth-child(1) {
+    background: linear-gradient(135deg, #5f2d91, #7c3aed);
+}
+
+.upi-app-btn:nth-child(1):hover {
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+}
+
+.upi-app-btn:nth-child(2) {
+    background: linear-gradient(135deg, #00baf2, #0ea5e9);
+}
+
+.upi-app-btn:nth-child(2):hover {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+
+.upi-app-btn:nth-child(3) {
+    background: linear-gradient(135deg, #4285f4, #1d4ed8);
+}
+
+.upi-app-btn:nth-child(3):hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+}
+
+.upi-app-btn:nth-child(4) {
+    background: linear-gradient(135deg, #ff6b35, #ea580c);
+}
+
+.upi-app-btn:nth-child(4):hover {
+    background: linear-gradient(135deg, #ea580c, #dc2626);
+}
+
+/* App Icon Styles */
+.app-icon {
+    margin-right: 0.5rem;
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+}
+
+/* Specific App Button Styles with Real Colors */
+.phonepe-btn {
+    background: linear-gradient(135deg, #5f2d91, #7c3aed) !important;
+}
+
+.phonepe-btn:hover {
+    background: linear-gradient(135deg, #7c3aed, #8b5cf6) !important;
+}
+
+.paytm-btn {
+    background: linear-gradient(135deg, #00baf2, #0ea5e9) !important;
+}
+
+.paytm-btn:hover {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+}
+
+.googlepay-btn {
+    background: linear-gradient(135deg, #4285f4, #1d4ed8) !important;
+}
+
+.googlepay-btn:hover {
+    background: linear-gradient(135deg, #1d4ed8, #1e40af) !important;
+}
+
+.bhim-btn {
+    background: linear-gradient(135deg, #ff6b35, #ea580c) !important;
+}
+
+.bhim-btn:hover {
+    background: linear-gradient(135deg, #ea580c, #dc2626) !important;
 }
 
 .payment-instruction {
-    margin-top: 1rem;
-    padding: 1rem;
-    background: rgba(245, 158, 11, 0.1);
-    border-radius: 8px;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.05));
+    border-radius: var(--radius);
     text-align: center;
+    border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .payment-instruction p {
     color: var(--text-white);
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
 
 .contact-number {
+    background: var(--dark-bg);
     color: var(--accent-gold);
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.2rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--radius);
+    border: 2px solid var(--accent-gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.payment-note {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: var(--radius);
+    border-left: 4px solid #10b981;
+}
+
+/* Payment Screenshot Upload Section */
+.payment-screenshot-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(34, 197, 94, 0.05));
+    border-radius: var(--radius);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.payment-screenshot-section h6 {
+    color: var(--text-white);
+    margin-bottom: 1rem;
     font-size: 1.1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.screenshot-upload {
+    margin-bottom: 1rem;
+}
+
+#payment-screenshot {
+    display: none;
+}
+
+.upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
+    color: var(--text-white);
+    border: 2px dashed var(--accent-gold);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: var(--transition);
+    font-weight: 600;
+    text-align: center;
+    min-height: 60px;
+}
+
+.upload-btn:hover {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-light));
+    color: var(--dark-bg);
+    border-color: var(--primary-blue);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.screenshot-preview {
+    position: relative;
+    margin-top: 1rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 2px solid var(--accent-gold);
+    background: var(--dark-bg);
+}
+
+.screenshot-preview img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
+    display: block;
+}
+
+.remove-screenshot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(239, 68, 68, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.remove-screenshot:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+
+
+.upload-instructions {
+    text-align: center;
+    margin-top: 1rem;
+}
+
+.upload-instructions p {
+    color: #10b981;
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.process-steps {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05));
+    border-radius: var(--radius);
+    border-left: 4px solid var(--primary-light);
+}
+
+.process-steps h6 {
+    color: var(--text-white);
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.process-steps ol {
+    margin: 0;
+    padding-left: 1.5rem;
+    color: #cbd5e1;
+}
+
+.process-steps li {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Disabled Confirm Order Button */
+#confirm-order:disabled {
+    background: #475569 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: 1px solid #64748b !important;
+}
+
+#confirm-order:disabled:hover {
+    background: #475569 !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+#confirm-order:not(:disabled) {
+    background: linear-gradient(135deg, var(--success), #059669) !important;
+    border: 1px solid var(--success) !important;
+}
+
+#confirm-order:not(:disabled):hover {
+    background: linear-gradient(135deg, #059669, #047857) !important;
+}
+
+/* WhatsApp style when screenshot is uploaded */
+#confirm-order.whatsapp-ready {
+    background: linear-gradient(135deg, #25d366, #128c7e) !important;
+    border: 1px solid #25d366 !important;
+}
+
+#confirm-order.whatsapp-ready:hover {
+    background: linear-gradient(135deg, #128c7e, #075e54) !important;
 }
 
 /* Order Summary in Popup */
@@ -1659,6 +2252,25 @@ footer {
 }
 
 /* Responsive Design */
+
+/* Large tablets and small desktops */
+@media (max-width: 1024px) {
+    .container {
+        max-width: 100%;
+        padding: 0 20px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+    }
+    
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Medium tablets */
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;
@@ -1667,11 +2279,25 @@ footer {
     }
     
     nav ul {
-        gap: 1rem;
+        gap: 0.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    nav a {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+        min-height: 44px;
+        border-radius: 8px;
     }
     
     .carousel {
-        height: 400px;
+        height: 350px;
+    }
+    
+    .carousel-image {
+        object-fit: cover;
+        object-position: center;
     }
     
     .carousel-caption {
@@ -1748,6 +2374,26 @@ footer {
     .upi-info {
         grid-template-columns: 1fr;
         text-align: center;
+        gap: 1.5rem;
+    }
+    
+    .upi-app-buttons {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    
+    .upi-app-btn {
+        padding: 0.875rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .payment-amount {
+        font-size: 1.1rem;
+        padding: 0.65rem 1.25rem;
+    }
+    
+    .qr-code img {
+        max-width: 130px;
     }
     
     .form-actions {
@@ -1826,6 +2472,51 @@ footer {
     
     .order-form {
         padding: 1rem;
+    }
+    
+    .upi-app-buttons {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .upi-app-btn {
+        padding: 0.75rem 1rem;
+        font-size: 0.8rem;
+    }
+    
+    .upi-details {
+        padding: 1.5rem;
+    }
+    
+    .payment-instruction {
+        padding: 1rem;
+    }
+    
+    .contact-number {
+        font-size: 1rem;
+        padding: 0.65rem 1.25rem;
+    }
+    
+    .payment-screenshot-section {
+        padding: 1rem;
+    }
+    
+    .upload-btn {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .whatsapp-send-btn {
+        padding: 0.875rem 1.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .upi-address {
+        font-size: 0.75rem;
+        padding: 0.75rem 0.5rem;
+        letter-spacing: 0px;
+        word-break: break-all;
+        line-height: 1.3;
     }
     
     /* Mobile layout for quantity container */
@@ -1913,3 +2604,699 @@ footer {
     }
 }
 
+/* Extra small devices for UPI ID overflow fix */
+@media (max-width: 360px) {
+    .upi-address {
+        font-size: 0.65rem;
+        padding: 0.5rem 0.25rem;
+        letter-spacing: -0.5px;
+        word-break: break-all;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+    }
+    
+    .upi-info {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .upi-id {
+        max-width: 100%;
+        overflow: hidden;
+    }
+    
+    .upi-details {
+        padding: 1rem;
+    }
+}
+
+/* Ultra small devices */
+@media (max-width: 320px) {
+    .upi-address {
+        font-size: 0.6rem;
+        padding: 0.4rem 0.2rem;
+        letter-spacing: -1px;
+        word-break: break-all;
+        line-height: 1.1;
+        overflow-wrap: anywhere;
+        hyphens: auto;
+    }
+}
+
+/* Landscape orientation improvements */
+@media (max-height: 500px) and (orientation: landscape) {
+    .carousel {
+        height: 250px;
+    }
+    
+    .carousel-caption {
+        padding: 1rem;
+    }
+    
+    .carousel-caption h2 {
+        font-size: 1.5rem;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .order-popup-content {
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .carousel-image,
+    .logo-image,
+    .app-icon img {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .carousel {
+        scroll-behavior: auto;
+    }
+}
+
+/* Dark mode support (if system preference) */
+@media (prefers-color-scheme: dark) {
+    /* Already using dark theme, but ensure compatibility */
+    :root {
+        color-scheme: dark;
+    }
+}/* Des
+ktop Navigation Styles */
+/* Desktop Navigation Styles */
+@media (min-width: 1024px) {
+    .mobile-menu-btn {
+        display: none !important;
+    }
+    
+    .header-content {
+        padding: 0 2rem;
+    }
+    
+    .logo {
+        order: 1;
+    }
+    
+    .nav-menu {
+        order: 2;
+        display: flex !important;
+    }
+    
+    /* Ensure desktop navigation is visible and properly positioned */
+    nav ul {
+        position: static !important;
+        flex-direction: row !important;
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        padding: 0 !important;
+        gap: 2rem !important;
+        box-shadow: none !important;
+        border: none !important;
+        backdrop-filter: none !important;
+        top: auto !important;
+        right: auto !important;
+        z-index: auto !important;
+        transform: none !important;
+    }
+    
+    nav ul.active {
+        right: auto !important;
+        transform: none !important;
+    }
+    nav a::after {
+        bottom: 0;
+        left: 0;
+        transform: none;
+    }
+    
+    nav a:hover::after,
+    nav a.active::after {
+        width: 100%;
+    }
+}
+
+/* Mobile Menu Overlay */
+.mobile-menu-overlay {
+    display: none;
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 60px);
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-menu-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+@media (min-width: 1024px) {
+    .mobile-menu-overlay {
+        display: none !important;
+    }
+}
+
+/* Cart count badge improvements */
+.cart-count {
+    background: linear-gradient(135deg, var(--accent-gold), var(--accent-light));
+    color: var(--text-dark);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 50px;
+    margin-left: 0.5rem;
+    min-width: 20px;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Improved mobile header spacing */
+@media (max-width: 1023px) {
+    .header-content {
+        padding: 0 1rem;
+    }
+    
+    .logo-text {
+        font-size: 1.3rem;
+    }
+    
+    .logo-image {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1023px) {
+    nav ul {
+        width: 320px;
+        padding: 2.5rem 2rem;
+    }
+    
+    nav a {
+        font-size: 1.2rem;
+        padding: 1.25rem 1.75rem;
+    }
+    
+    .header-content {
+        padding: 0 1.5rem;
+    }
+    
+    .logo-text {
+        font-size: 1.4rem;
+    }
+    
+    .logo-image {
+        width: 42px;
+        height: 42px;
+    }
+}
+
+/* Additional Mobile Menu Fixes */
+@media (max-width: 768px) {
+    /* Ensure mobile menu button is always visible on mobile */
+    .mobile-menu-btn {
+        display: flex !important;
+        position: relative;
+        z-index: 1003;
+    }
+    
+    /* Hide desktop navigation on mobile */
+    .nav-menu {
+        display: block;
+    }
+    
+    /* Ensure proper mobile menu positioning */
+    .nav-menu.active {
+        right: 0 !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Mobile menu overlay */
+    .nav-menu.active::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+    }
+}
+
+/* Tablet and Desktop Navigation */
+@media (min-width: 769px) {
+    .nav-menu {
+        position: static !important;
+        width: auto !important;
+        height: auto !important;
+        background: transparent !important;
+        backdrop-filter: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        right: auto !important;
+        top: auto !important;
+    }
+    
+    .nav-menu ul {
+        flex-direction: row !important;
+        padding: 0 !important;
+        gap: 2rem !important;
+        height: auto !important;
+    }
+    
+    .nav-menu a {
+        padding: 0.75rem 1rem !important;
+        border-radius: 6px !important;
+        font-size: 1rem !important;
+        min-height: 44px !important;
+        border: none !important;
+        width: auto !important;
+    }
+}
+
+/* Fix for logo positioning */
+.logo-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.logo-main {
+    font-size: 1.4rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.logo-highlight {
+    color: var(--accent-gold);
+}
+
+/* Ensure proper header height and spacing */
+body {
+    padding-top: 60px;
+}
+
+main {
+    margin-top: 0;
+    padding-top: 1rem;
+}
+
+/* Mobile menu animation improvements */
+.nav-menu {
+    transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.mobile-menu-btn .hamburger-line {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent horizontal scroll when mobile menu is open */
+body.menu-open {
+    overflow-x: hidden;
+}/* 
+Carousel Styles - Enhanced for Mobile */
+.carousel {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    overflow: hidden;
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-xl);
+    border: none;
+    background: var(--dark-bg);
+}
+
+@media (max-width: 768px) {
+    .carousel {
+        height: 300px;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel {
+        height: 250px;
+    }
+}
+
+.carousel-inner {
+    display: flex;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    width: 100%;
+}
+
+.carousel-item {
+    min-width: 100%;
+    height: 100%;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.carousel-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.8);
+    transition: filter 0.3s ease;
+}
+
+.carousel-caption {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: linear-gradient(transparent, rgba(15, 23, 42, 0.9));
+    color: var(--text-white);
+    padding: 3rem 2rem 2rem;
+    text-align: left;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .carousel-caption {
+        padding: 2rem 1.5rem 1.5rem;
+        min-height: 120px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-caption {
+        padding: 1.5rem 1rem 1rem;
+        min-height: 100px;
+    }
+}
+
+.carousel-caption h2 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--text-white), var(--primary-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+@media (max-width: 768px) {
+    .carousel-caption h2 {
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-caption h2 {
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+    }
+}
+
+.carousel-caption p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    line-height: 1.5;
+    max-width: 600px;
+}
+
+@media (max-width: 768px) {
+    .carousel-caption p {
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-caption p {
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+}
+
+/* Carousel Controls */
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--text-white);
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: var(--transition);
+    z-index: 10;
+    backdrop-filter: blur(10px);
+}
+
+@media (max-width: 768px) {
+    .carousel-control {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-control {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+}
+
+.carousel-control:hover {
+    background: rgba(15, 23, 42, 0.95);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-control.prev {
+    left: 20px;
+}
+
+.carousel-control.next {
+    right: 20px;
+}
+
+@media (max-width: 768px) {
+    .carousel-control.prev {
+        left: 15px;
+    }
+    
+    .carousel-control.next {
+        right: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-control.prev {
+        left: 10px;
+    }
+    
+    .carousel-control.next {
+        right: 10px;
+    }
+}
+
+/* Carousel Indicators */
+.carousel-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+@media (max-width: 768px) {
+    .carousel-indicators {
+        bottom: 15px;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-indicators {
+        bottom: 10px;
+        gap: 6px;
+    }
+}
+
+.carousel-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+@media (max-width: 768px) {
+    .carousel-indicator {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .carousel-indicator {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+.carousel-indicator.active {
+    background: var(--accent-gold);
+    transform: scale(1.2);
+}
+
+.carousel-indicator:hover {
+    background: rgba(255, 255, 255, 0.8);
+}
+
+/* Touch-friendly carousel for mobile */
+@media (max-width: 768px) {
+    .carousel {
+        touch-action: pan-y pinch-zoom;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .carousel-inner {
+        cursor: grab;
+    }
+    
+    .carousel-inner:active {
+        cursor: grabbing;
+    }
+}
+
+/* Prevent text selection during carousel drag */
+.carousel * {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+/* Carousel loading state */
+.carousel-item img {
+    transition: opacity 0.3s ease;
+}
+
+.carousel-item img[src=""] {
+    opacity: 0;
+}/* Ensur
+e mobile menu button is always in header */
+@media (max-width: 768px) {
+    .header-content {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+    
+    .logo {
+        order: 1 !important;
+        flex: 0 0 auto !important;
+    }
+    
+    .mobile-menu-btn {
+        order: 3 !important;
+        flex: 0 0 auto !important;
+        margin-left: auto !important;
+        display: flex !important;
+    }
+    
+    .nav-menu {
+        order: 2 !important;
+    }
+}
+
+/* Fix for header positioning */
+header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1000 !important;
+}
+
+/* Ensure body has proper top margin */
+body {
+    margin-top: 60px !important;
+    padding-top: 0 !important;
+}
+
+main {
+    margin-top: 0 !important;
+    padding-top: 1rem !important;
+}/* Fix for a
+ny mirroring or text direction issues */
+html, body, * {
+    direction: ltr !important;
+    text-align: left !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    -moz-transform: none !important;
+    -ms-transform: none !important;
+    -o-transform: none !important;
+}
+
+/* Ensure all text elements have proper direction */
+h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+    direction: ltr !important;
+    text-align: left !important;
+    transform: none !important;
+    unicode-bidi: normal !important;
+}
+
+/* Fix for any CSS that might cause mirroring */
+.hero-title, .carousel-caption h2, .logo-main {
+    direction: ltr !important;
+    text-align: left !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+}
+
+/* Ensure proper text rendering */
+body {
+    -webkit-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+}

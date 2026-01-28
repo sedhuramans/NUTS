@@ -3,66 +3,85 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Login - SRS Cashews</title>
+        <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: http://localhost:3000 data: blob:; connect-src 'self' https: http://localhost:3000 http://127.0.0.1:3000 wss: ws:; img-src 'self' https: data: blob:;">
+        <title>Login - AS Nuts</title>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <link rel="stylesheet" href="login.css">
     </head>
     <body>
+        <!-- AS Nuts Logo Header -->
+        <div class="logo-header">
+            <img src="data:image/png;base64,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" alt="AS Nuts" class="logo">
+            <h2>AS Nuts</h2>
+            <p>Premium Cashews from Ramapuran</p>
+        </div>
+
         <div id="container">
+            <!-- Main Login Section - Always Visible -->
             <div class="login">
                 <div class="content">
-                    <h1>Log In</h1>
-                    <!-- Replace the entire form section in the login div with this -->
+                    <h1>Welcome Back</h1>
+                    <p>Sign in to your AS Nuts account</p>
+                    
                     <form id="login-form">
-                        <input type="email" id="login-email" placeholder="email" required>
-                        <input type="password" id="login-password" placeholder="password" required>
+                        <input type="email" id="login-email" placeholder="Email Address" required>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                        
                         <div class="remember-container">
                             <input type="checkbox" id="remember-me" class="remember-checkbox">
                             <label for="remember-me" class="remember-label">Remember me</label>
                         </div>
+                        
                         <span class="forget">Forgot password?</span>
-                        <span class="clearfix"></span>
-                        <button type="submit">Log In</button>
+                        
+                        <button type="submit">Sign In</button>
                     </form>
-                    <span class="loginwith">Or Connect with</span>
-                    <a href="#">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-facebook">
-                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                        </svg>
-                    </a>
-                    <a href="#">
-                        <svg class="feather feather-twitter sc-dnqmqq jxshSx" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-                        </svg>
-                    </a>
-                    <a href="#">
-                        <svg class="feather feather-github sc-dnqmqq jxshSx" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                        </svg>
-                    </a>
-                    <a href="#">
-                        <svg class="feather feather-linkedin sc-dnqmqq jxshSx" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                            <rect x="2" y="9" width="4" height="12"></rect>
-                            <circle cx="4" cy="4" r="2"></circle>
-                        </svg>
-                    </a>
-                    <span class="copy">&copy 2024</span>
+                    
+                    <div class="loginwith">Or connect with</div>
+                    
+                    <div class="social-icons">
+                        <a href="#" aria-label="Login with Facebook">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Login with Google">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                                <line x1="15" y1="9" x2="15.01" y2="9"/>
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Login with Apple">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </a>
+                    </div>
+                    
+                    <div class="register-link">
+                        <p>Don't have an account? <a href="#" id="show-register">Create Account</a></p>
+                    </div>
+                    
+                    <div class="copy">&copy; 2024 AS Nuts. All rights reserved.</div>
                 </div>
             </div>
+
+            <!-- Desktop Register Section - Hidden on Mobile -->
             <div class="page front">
                 <div class="content">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-user-plus">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                         <circle cx="8.5" cy="7" r="4"/>
                         <line x1="20" y1="8" x2="20" y2="14"/>
                         <line x1="23" y1="11" x2="17" y2="11"/>
                     </svg>
-                    <h1>Hello, friend!</h1>
-                    <p>Enter your personal details and start journey with us</p>
+                    <h1>Hello, Friend!</h1>
+                    <p>Enter your personal details and start your journey with us</p>
                     <button type="button" id="register">
-                        Register 
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle">
+                        Create Account
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12 16 16 12 12 8"/>
                             <line x1="8" y1="12" x2="16" y2="12"/>
@@ -70,54 +89,29 @@
                     </button>
                 </div>
             </div>
-            <div class="page back">
+
+            <!-- Register Form Section -->
+            <div class="register" style="display: none;">
                 <div class="content">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-log-in">
-                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                        <polyline points="10 17 15 12 10 7"/>
-                        <line x1="15" y1="12" x2="3" y2="12"/>
-                    </svg>
-                    <h1>Welcome Back!</h1>
-                    <p>To keep connected with us please login with your personal info</p>
-                    <button type="button" id="login">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-left-circle">
-                            <circle cx="12" cy="12" r="10"/>
-                            <polyline points="12 8 8 12 12 16"/>
-                            <line x1="16" y1="12" x2="8" y2="12"/>
-                        </svg>
-                        Log In
-                    </button>
-                </div>
-            </div>
-            <div class="register">
-                <div class="content">
-                    <h1>Sign Up</h1>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-facebook">
-                        <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                    </svg>
-                    <svg class="feather feather-twitter sc-dnqmqq jxshSx" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
-                    </svg>
-                    <svg class="feather feather-github sc-dnqmqq jxshSx" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-                    <svg class="feather feather-linkedin sc-dnqmqq jxshSx" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
-                        <rect x="2" y="9" width="4" height="12"></rect>
-                        <circle cx="4" cy="4" r="2"></circle>
-                    </svg>
-                    <span class="loginwith">Or</span>
+                    <h1>Create Account</h1>
+                    <p>Join AS Nuts for premium cashews</p>
+                    
                     <form id="register-form">
-                        <input type="text" id="register-name" placeholder="name" required>
-                        <input type="email" id="register-email" placeholder="email" required>
-                        <input type="password" id="register-password" placeholder="password" required>
-                        <!-- <span class="remember">I accept terms</span>  -->
-                        <span class="clearfix"></span>
-                        <button type="submit">Register</button>
+                        <input type="text" id="register-name" placeholder="Full Name" required>
+                        <input type="email" id="register-email" placeholder="Email Address" required>
+                        <input type="password" id="register-password" placeholder="Password" required>
+                        <button type="submit">Create Account</button>
                     </form>
+                    
+                    <div class="login-link">
+                        <p>Already have an account? <a href="#" id="show-login">Sign In</a></p>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- Notification Container -->
+        <div id="notification" class="notification"></div>
         <script src="login.js"></script>
     </body>
 </html>

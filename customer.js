@@ -1,10 +1,23 @@
-// customer.js - Complete file with localStorage integration
+// customer.js - Complete file with MongoDB integration
+
+// API Base URL - Point to Node.js server
+const API_BASE = 'http://localhost:3000';
+
+// Create fallback image as data URL
+function createFallbackImage(text = 'AS Nuts', width = 320, height = 250) {
+    const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#f8f9fa"/>
+        <text x="50%" y="45%" font-family="Arial, sans-serif" font-size="18" fill="#6c757d" text-anchor="middle" dy=".3em">${text}</text>
+        <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="12" fill="#adb5bd" text-anchor="middle" dy=".3em">Image not available</text>
+    </svg>`;
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+}
 
 // Storage Keys
 const STORAGE_KEYS = {
     PRODUCTS: 'srs_cashews_products',
     ORDERS: 'srs_cashews_orders', 
-    CART: 'srs_cashews_cart'
+    CART: 'keerthivasan_cashews_cart'
 };
 
 // Global data
@@ -30,6 +43,10 @@ const productSearch = document.getElementById('product-search');
 const filterButtons = document.querySelectorAll('.filter-btn');
 const categoryCards = document.querySelectorAll('.category-card');
 const contactNav = document.getElementById('contact-nav');
+
+// Mobile menu elements
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const navMenu = document.getElementById('nav-menu');
 
 // Carousel elements
 const carouselInner = document.querySelector('.carousel-inner');
@@ -67,7 +84,8 @@ async function init() {
     setupEventListeners();
     updateCartCount();
     startCarousel();
-    showNotification('Welcome to SRS Cashews! Premium cashews from Panruti, Tamil Nadu', false);
+    setupCarouselTouch();
+    showNotification('Welcome to Keerthivasan Cashews! Premium cashews from ramapuran, Tamil Nadu', false);
     
     // Set up storage listener for real-time updates
     window.addEventListener('storage', handleStorageUpdate);
@@ -81,13 +99,13 @@ function handleStorageUpdate(event) {
     }
 }
 
-// Load products from localStorage or fallback
+// Load products from API (real-time from database)
 async function loadProducts() {
     try {
-        const storedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+        const response = await fetch(`${API_BASE}/api/products`);
         
-        if (storedProducts) {
-            const productsArray = JSON.parse(storedProducts);
+        if (response.ok) {
+            const productsArray = await response.json();
             
             // Convert array to object with id as key
             products = {};
@@ -96,15 +114,14 @@ async function loadProducts() {
             });
             
             renderProducts();
+            showNotification('Products loaded from database!', false);
         } else {
-            // If no products in localStorage, load default products
-            loadLocalProducts();
-            saveProductsToStorage();
+            throw new Error('Failed to fetch products from server');
         }
     } catch (error) {
-        console.error('Failed to load products from storage:', error);
+        // Fallback to local products if API fails
         loadLocalProducts();
-        saveProductsToStorage();
+        showNotification('Using offline products. Some items may not be current.', true);
     }
 }
 
@@ -141,29 +158,25 @@ function saveCartToStorage() {
     }
 }
 
-// Save order to localStorage
+// Save order to database via API
 async function saveOrderToDB(orderData) {
     try {
-        // Get existing orders
-        const existingOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
-        
-        // Add new order with unique ID
-        orderData.id = 'order_' + Date.now();
-        orderData.date = new Date().toISOString();
-        existingOrders.push(orderData);
-        
-        // Save back to localStorage
-        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(existingOrders));
-        
-        // Trigger storage event for owner page
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: STORAGE_KEYS.ORDERS,
-            newValue: localStorage.getItem(STORAGE_KEYS.ORDERS)
-        }));
-        
-        return orderData;
+        const response = await fetch(`${API_BASE}/api/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(orderData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            return result.order;
+        } else {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to save order');
+        }
     } catch (error) {
-        console.error('Error saving order:', error);
         throw error;
     }
 }
@@ -171,23 +184,23 @@ async function saveOrderToDB(orderData) {
 // Fallback to local products
 function loadLocalProducts() {
     products = {
-        // Premium Panruti Cashews
+        // Premium Ramapuram Cashews
         batham: { 
             id: "batham",
             name: "Batham Cashew Nuts", 
             nameTamil: "பாதாம் முந்திரி",
             price: 140,
-            description: "Premium Batham cashews with creamy texture and buttery flavor from Panruti.",
+            description: "Premium Batham cashews with creamy texture and buttery flavor from ramapuran.",
             image: "https://m.media-amazon.com/images/I/71o-btxbBiL._AC_UF894,1000_QL80_.jpg",
             category: "cashews",
-            badge: "Panruti Special"
+            badge: "ramapuran Special"
         },
         kaju: { 
             id: "kaju",
             name: "Jumbo Whole Cashews", 
             nameTamil: "காஜு முந்திரி",
             price: 130,
-            description: "Extra large whole cashews with creamy texture and buttery flavor from Panruti farms.",
+            description: "Extra large whole cashews with creamy texture and buttery flavor from ramapuran farms.",
             image: "https://rukminim2.flixcart.com/image/480/480/ks3jjbk0/nut-dry-fruit/4/s/c/1-premium-whole-cashew-nuts-w210-1-kg-1000-gm-big-size-jumbo-original-imag5qq8dfvfvgcj.jpeg?q=90",
             category: "cashews",
             badge: "Premium"
@@ -483,7 +496,7 @@ function renderProducts(filter = 'all', searchTerm = '') {
         productCard.className = 'product-card';
         productCard.innerHTML = `
             <div class="product-image">
-                <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/320x250?text=SRS+Cashews'">
+                <img src="${product.image}" alt="${product.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjI1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjBmMGYwIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzk5OTk5OSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkFTIE51dHM8L3RleHQ+PC9zdmc+'"
                 ${product.badge ? `<div class="product-badge">${product.badge}</div>` : ''}
             </div>
             <div class="product-info">
@@ -840,6 +853,15 @@ function updatePopupOrderSummary() {
     popupOrderItems.appendChild(shippingItem);
     
     popupTotal.textContent = total.toFixed(2);
+    
+    // Update UPI amount display
+    const upiAmountElement = document.getElementById('upi-amount');
+    if (upiAmountElement) {
+        upiAmountElement.textContent = total.toFixed(2);
+    }
+    
+    // Generate QR code with the total amount
+    generateQRCode(total.toFixed(2));
 }
 
 async function confirmOrder(formData) {
@@ -854,7 +876,7 @@ async function confirmOrder(formData) {
         items: [],
         total: parseFloat(popupTotal.textContent),
         status: 'pending',
-        source: 'SRS Cashews Website'
+        source: 'AS Nuts Website'
     };
     
     // Add cart items to order data
@@ -871,6 +893,7 @@ async function confirmOrder(formData) {
     }
     
     try {
+        // Save order to database
         await saveOrderToDB(orderData);
         
         // Clear cart
@@ -882,14 +905,14 @@ async function confirmOrder(formData) {
         if (orderData.paymentMethod === 'cod') {
             showNotification(`Order placed successfully, ${orderData.customerName}! Your order will be delivered to ${orderData.customerPlace}. We will contact you on ${orderData.customerPhone}. Payment: Cash on Delivery`);
         } else {
-            showNotification(`Order placed successfully, ${orderData.customerName}! Please complete the UPI payment and send screenshot to 9488588456. We will process your order once payment is confirmed.`);
+            showNotification(`Order confirmed! Payment details received. Thank you for choosing AS Nuts!`);
         }
         
         // Close popup
         closeOrderPopup();
         
     } catch (error) {
-        showNotification('Failed to place order. Please call us directly at +91 98765 43210', true);
+        showNotification('Failed to place order. Please call us directly at +91 9840694616', true);
     }
 }
 
@@ -913,7 +936,7 @@ function printOrderSummary() {
         <!DOCTYPE html>
         <html>
         <head>
-            <title>SRS Cashews - Order Bill</title>
+            <title>Keerthivasan Cashews - Order Bill</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -996,8 +1019,8 @@ function printOrderSummary() {
         <body>
             <div class="print-bill">
                 <div class="bill-header">
-                    <h2>SRS CASHEWS</h2>
-                    <p>Premium Cashews from Panruti, Tamil Nadu</p>
+                    <h2>KEERTHIVASAN CASHEWS</h2>
+                    <p>Premium Cashews from ramapuran, Tamil Nadu</p>
                     <div class="bill-date">${new Date().toLocaleString()}</div>
                 </div>
                 
@@ -1013,8 +1036,8 @@ function printOrderSummary() {
                 </div>
                 
                 <div class="bill-footer">
-                    <p>Thank you for choosing SRS Cashews!</p>
-                    <p>From Panruti with Love ❤️</p>
+                    <p>Thank you for choosing Keerthivasan Cashews!</p>
+                    <p>From ramapuran with Love ❤️</p>
                 </div>
             </div>
         </body>
@@ -1106,6 +1129,35 @@ function scrollToFooter() {
 
 // EVENT LISTENERS SETUP
 function setupEventListeners() {
+    // Mobile Menu Toggle
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const navMenu = document.getElementById('nav-menu');
+    const navUl = navMenu.querySelector('ul');
+    
+    if (mobileMenuBtn && navMenu) {
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navUl.classList.toggle('active');
+            
+            // Create overlay if it doesn't exist
+            let overlay = document.querySelector('.mobile-menu-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'mobile-menu-overlay';
+                document.body.appendChild(overlay);
+                
+                // Close menu when clicking overlay
+                overlay.addEventListener('click', () => {
+                    mobileMenuBtn.classList.remove('active');
+                    navUl.classList.remove('active');
+                    overlay.classList.remove('active');
+                });
+            }
+            
+            overlay.classList.toggle('active');
+        });
+    }
+    
     // Navigation
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
@@ -1113,6 +1165,14 @@ function setupEventListeners() {
                 e.preventDefault();
                 const pageId = link.getAttribute('data-page');
                 showPage(pageId);
+                
+                // Close mobile menu after navigation
+                if (mobileMenuBtn && navMenu) {
+                    mobileMenuBtn.classList.remove('active');
+                    navUl.classList.remove('active');
+                    const overlay = document.querySelector('.mobile-menu-overlay');
+                    if (overlay) overlay.classList.remove('active');
+                }
             }
         });
     });
@@ -1186,11 +1246,29 @@ function setupEventListeners() {
     // Payment method change
     paymentMethods.forEach(radio => {
         radio.addEventListener('change', (e) => {
+            const confirmBtn = document.getElementById('confirm-order');
+            
             if (e.target.value === 'online') {
                 upiDetails.style.display = 'block';
+                // Disable confirm button for online payment until screenshot is uploaded
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-lock"></i> Upload Screenshot to Confirm';
+                
+                // Generate QR code when online payment is selected
+                const total = document.getElementById('popup-total').textContent;
+                if (total && total !== '0.00') {
+                    generateQRCode(total);
+                    document.getElementById('upi-amount').textContent = total;
+                }
             } else {
                 upiDetails.style.display = 'none';
+                // Enable confirm button for COD
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Order';
             }
+            
+            // Reset screenshot upload state when payment method changes
+            resetScreenshotUpload();
         });
     });
     
@@ -1237,11 +1315,73 @@ function setupEventListeners() {
 }
 
 // Initialize the website when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', function() {
+    try {
+        init();
+    } catch (error) {
+        showNotification('Website initialization error. Please refresh the page.', true);
+    }
+});
+
+// UPI Payment Functions
+function generateQRCode(amount) {
+    const upiId = 'keerthivasan98406@okhdfcbank';
+    const merchantName = 'AS Nuts';
+    const transactionNote = 'Nuts Order Payment';
+    
+    // UPI URL format for QR code
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    
+    // Generate QR code using QR Server API
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+    
+    const qrContainer = document.getElementById('qr-code-container');
+    qrContainer.innerHTML = `
+        <img src="${qrApiUrl}" alt="UPI QR Code" style="border: 2px solid var(--accent-gold); border-radius: 8px;">
+        <p class="qr-instruction">Scan with any UPI app to pay ₹${amount}</p>
+    `;
+}
+
+function payWithUPI(app) {
+    const amount = document.getElementById('popup-total').textContent;
+    const upiId = 'keerthivasan98406@okhdfcbank';
+    const merchantName = 'AS Nuts';
+    const transactionNote = 'Nuts Order Payment';
+    
+    // UPI deep link format
+    const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+    
+    // App-specific deep links
+    const appUrls = {
+        phonepe: `phonepe://pay?${upiUrl.split('?')[1]}`,
+        paytm: `paytmmp://pay?${upiUrl.split('?')[1]}`,
+        googlepay: `tez://upi/pay?${upiUrl.split('?')[1]}`,
+        bhim: `bhim://pay?${upiUrl.split('?')[1]}`
+    };
+    
+    // Try to open the specific app, fallback to generic UPI
+    const appUrl = appUrls[app] || upiUrl;
+    
+    // Create a temporary link and click it
+    const link = document.createElement('a');
+    link.href = appUrl;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Show notification
+    showNotification(`Opening ${app.charAt(0).toUpperCase() + app.slice(1)} for payment of ₹${amount}...`);
+    
+    // If app doesn't open, show fallback message
+    setTimeout(() => {
+        showNotification('If the app didn\'t open, please copy the UPI ID and pay manually', false);
+    }, 3000);
+}
 
 // Export functions for global access
 window.copyUPI = function() {
-    const upiId = 'vdcjhsvdcd@upi';
+    const upiId = 'keerthivasan98406@okhdfcbank';
     navigator.clipboard.writeText(upiId).then(() => {
         showNotification('UPI ID copied to clipboard!');
     }).catch(() => {
@@ -1256,6 +1396,8 @@ window.copyUPI = function() {
     });
 };
 
+window.payWithUPI = payWithUPI;
+
 
 // Add this function to handle the order confirmation button animation
 function setupOrderButtonAnimation() {
@@ -1263,7 +1405,7 @@ function setupOrderButtonAnimation() {
     
     orderButton.addEventListener('click', function(e) {
         if (Object.keys(cart).length === 0) {
-            showNotification('Your cart is empty. Add some premium Panruti products first!', true);
+            showNotification('Your cart is empty. Add some premium ramapuran products first!', true);
             return;
         }
         
@@ -1279,3 +1421,984 @@ function setupOrderButtonAnimation() {
         }
     });
 }
+
+// Screenshot Upload Functions
+document.addEventListener('DOMContentLoaded', function() {
+    const screenshotInput = document.getElementById('payment-screenshot');
+    const screenshotPreview = document.getElementById('screenshot-preview');
+    const previewImage = document.getElementById('preview-image');
+    const whatsappBtn = document.getElementById('whatsapp-send-btn');
+    
+    if (screenshotInput) {
+        screenshotInput.addEventListener('change', handleScreenshotUpload);
+    }
+});
+
+function handleScreenshotUpload(event) {
+    try {
+        const file = event.target.files[0];
+        if (file) {
+        // Check if it's an image
+        if (!file.type.startsWith('image/')) {
+            showNotification('Please select an image file', true);
+            return;
+        }
+        
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            showNotification('File size should be less than 5MB', true);
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const previewImage = document.getElementById('preview-image');
+            const screenshotPreview = document.getElementById('screenshot-preview');
+            const confirmBtn = document.getElementById('confirm-order');
+            const processSteps = document.getElementById('process-steps');
+            
+            previewImage.src = e.target.result;
+            screenshotPreview.style.display = 'block';
+            processSteps.style.display = 'block';
+            
+            // Enable confirm order button with WhatsApp action
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm Order';
+            confirmBtn.classList.add('whatsapp-ready');
+            
+            // Store the image data for WhatsApp sending
+            window.paymentScreenshot = {
+                file: file,
+                dataUrl: e.target.result
+            };
+            
+            showNotification('✅ Screenshot uploaded! Click "Confirm Order" to send order details to WhatsApp and download the screenshot for sharing.', false, 'success');
+        };
+        reader.readAsDataURL(file);
+        }
+    } catch (error) {
+        console.error('Error handling screenshot upload:', error);
+        showNotification('Error uploading screenshot. Please try again.', true);
+    }
+}
+
+function removeScreenshot() {
+    const screenshotInput = document.getElementById('payment-screenshot');
+    const screenshotPreview = document.getElementById('screenshot-preview');
+    const confirmBtn = document.getElementById('confirm-order');
+    
+    screenshotInput.value = '';
+    screenshotPreview.style.display = 'none';
+    
+    // Disable confirm order button again
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = '<i class="fas fa-lock"></i> Upload Screenshot to Confirm';
+    confirmBtn.classList.remove('whatsapp-ready');
+    
+    // Clear stored image data
+    window.paymentScreenshot = null;
+    
+    showNotification('Screenshot removed. Please upload payment screenshot to confirm order.', false);
+}
+
+function sendToWhatsApp() {
+    if (!window.paymentScreenshot) {
+        showNotification('Please upload a screenshot first', true);
+        return;
+    }
+    
+    // Get order details
+    const customerName = document.getElementById('customer-name')?.value || 'Customer';
+    const total = document.getElementById('popup-total')?.textContent || '0';
+    const orderItems = [];
+    
+    // Get cart items for the message
+    for (const productId in cart) {
+        const item = cart[productId];
+        orderItems.push(`${item.name} - ${item.quantity} × 50g = ₹${item.total}`);
+    }
+    
+    // Create WhatsApp message
+    const message = `🛒 *AS Nuts Order Payment*
+    
+👤 *Customer:* ${customerName}
+💰 *Total Amount:* ₹${total}
+
+📦 *Items:*
+${orderItems.join('\n')}
+
+💳 *Payment Screenshot:* I will send the screenshot in the next message
+📱 *UPI ID:* keerthivasan98406@okhdfcbank
+
+✅ Payment completed via UPI. Please confirm order processing.
+
+Thank you for choosing AS Nuts! 🥜`;
+    
+    // Encode message for WhatsApp URL
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappNumber = '919840694616'; // Your WhatsApp number
+    
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    // Download screenshot for easy sharing
+    downloadScreenshot();
+    
+    // Show clear instructions
+    setTimeout(() => {
+        showNotification('📱 WhatsApp opened! Now please attach and send the downloaded screenshot image in the chat.', false, 'success');
+    }, 1000);
+}
+
+function downloadScreenshot() {
+    if (!window.paymentScreenshot) return;
+    
+    try {
+        const customerName = document.getElementById('customer-name')?.value || 'Customer';
+        const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+        
+        const link = document.createElement('a');
+        link.download = `AS-Nuts-Payment-${customerName}-${timestamp}.jpg`;
+        link.href = window.paymentScreenshot.dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show notification with clear instructions
+        setTimeout(() => {
+            showNotification('📥 Screenshot downloaded to your device! Please attach this image in the WhatsApp chat that just opened.', false, 'success');
+        }, 500);
+        
+    } catch (error) {
+        // Download not supported on this device
+        // Fallback: Show instructions to manually save the image
+        showNotification('Please manually save the screenshot image and send it in WhatsApp chat.', false);
+    }
+}
+
+function resetScreenshotUpload() {
+    const screenshotInput = document.getElementById('payment-screenshot');
+    const screenshotPreview = document.getElementById('screenshot-preview');
+    
+    if (screenshotInput) {
+        screenshotInput.value = '';
+    }
+    if (screenshotPreview) {
+        screenshotPreview.style.display = 'none';
+    }
+    
+    // Clear stored image data
+    window.paymentScreenshot = null;
+}
+
+// Save order to localStorage for owner to see
+async function saveOrderToOwner(orderData) {
+    try {
+        // Get existing orders from localStorage
+        const existingOrders = JSON.parse(localStorage.getItem(STORAGE_KEYS.ORDERS) || '[]');
+        
+        // Add new order with unique ID
+        orderData.id = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        existingOrders.push(orderData);
+        
+        // Save back to localStorage
+        localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(existingOrders));
+        
+        // Trigger storage event for owner portal (if open in another tab)
+        window.dispatchEvent(new StorageEvent('storage', {
+            key: STORAGE_KEYS.ORDERS,
+            newValue: localStorage.getItem(STORAGE_KEYS.ORDERS)
+        }));
+        
+        // Order saved successfully
+        return true;
+    } catch (error) {
+        console.error('Failed to save order:', error);
+        throw error;
+    }
+}
+
+// Export functions for global access
+window.removeScreenshot = removeScreenshot;
+window.sendToWhatsApp = sendToWhatsApp;
+window.resetScreenshotUpload = resetScreenshotUpload;
+
+// Utility Functions
+function showNotification(message, isError = false, type = 'info') {
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = `notification ${isError ? 'error' : type}`;
+    notification.style.display = 'block';
+    notification.style.opacity = '1';
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 300);
+    }, 4000);
+}
+
+function setupOrderButtonAnimation() {
+    // Add any order button animations here if needed
+    console.log('Order button animation setup complete');
+}
+
+function updateCartCount() {
+    if (!cartCount) return;
+    
+    const totalItems = Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
+    cartCount.textContent = totalItems;
+    
+    // Add animation when count changes
+    if (totalItems > 0) {
+        cartCount.style.transform = 'scale(1.2)';
+        setTimeout(() => {
+            cartCount.style.transform = 'scale(1)';
+        }, 200);
+    }
+}
+
+function showPage(pageId) {
+    // Hide all pages
+    pages.forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show target page
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
+    
+    // Update navigation active states
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-page') === pageId) {
+            link.classList.add('active');
+        }
+    });
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleScroll() {
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    
+    if (scrollTop > lastScrollTop && scrollTop > scrollThreshold) {
+        // Scrolling down - hide header
+        header.style.transform = 'translateY(-100%)';
+    } else {
+        // Scrolling up - show header
+        header.style.transform = 'translateY(0)';
+    }
+    
+    lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+}
+
+function renderProducts() {
+    if (!productsGrid) return;
+    
+    productsGrid.innerHTML = '';
+    
+    Object.values(products).forEach(product => {
+        const productCard = createProductCard(product);
+        productsGrid.appendChild(productCard);
+    });
+}
+
+function createProductCard(product) {
+    const card = document.createElement('div');
+    card.className = 'product-card';
+    card.setAttribute('data-category', product.category);
+    
+    card.innerHTML = `
+        <div class="product-image">
+            <img src="${product.image}" alt="${product.name}" onerror="this.src='${createFallbackImage(product.name)}'">
+            ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+        </div>
+        <div class="product-info">
+            <h3>${product.name}</h3>
+            <p class="product-tamil">${product.nameTamil || ''}</p>
+            <p class="product-description">${product.description}</p>
+            <div class="product-price">₹${product.price} <span>per 50g</span></div>
+            <button class="btn btn-primary add-to-cart" onclick="addToCart('${product.id}')">
+                <i class="fas fa-cart-plus"></i> Add to Cart
+            </button>
+        </div>
+    `;
+    
+    return card;
+}
+
+function addToCart(productId) {
+    if (!products[productId]) return;
+    
+    if (cart[productId]) {
+        cart[productId].quantity += 1;
+        cart[productId].total = cart[productId].quantity * cart[productId].price;
+    } else {
+        const product = products[productId];
+        cart[productId] = {
+            id: productId,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            total: product.price,
+            image: product.image
+        };
+    }
+    
+    saveCartToStorage();
+    updateCartCount();
+    updateCart();
+    showNotification(`${products[productId].name} added to cart!`, false, 'success');
+}
+
+function updateCart() {
+    if (!cartItems) return;
+    
+    const cartItemsContainer = cartItems;
+    cartItemsContainer.innerHTML = '';
+    
+    if (Object.keys(cart).length === 0) {
+        emptyCartMessage.style.display = 'block';
+        return;
+    }
+    
+    emptyCartMessage.style.display = 'none';
+    
+    let subtotal = 0;
+    
+    Object.values(cart).forEach(item => {
+        subtotal += item.total;
+        
+        const cartItem = document.createElement('div');
+        cartItem.className = 'cart-item';
+        cartItem.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" onerror="this.src='${createFallbackImage(item.name)}'">
+            <div class="cart-item-info">
+                <h4>${item.name}</h4>
+                <p>₹${item.price} per 50g</p>
+            </div>
+            <div class="cart-item-controls">
+                <button onclick="decreaseQuantity('${item.id}')">-</button>
+                <span>${item.quantity}</span>
+                <button onclick="increaseQuantity('${item.id}')">+</button>
+            </div>
+            <div class="cart-item-total">₹${item.total}</div>
+            <button class="remove-item" onclick="removeFromCart('${item.id}')">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        
+        cartItemsContainer.appendChild(cartItem);
+    });
+    
+    // Update totals
+    if (subtotalElement) subtotalElement.textContent = `₹${subtotal.toFixed(2)}`;
+    if (totalElement) totalElement.textContent = `₹${(subtotal + 50).toFixed(2)}`;
+}
+
+function increaseQuantity(productId) {
+    if (cart[productId]) {
+        cart[productId].quantity += 1;
+        cart[productId].total = cart[productId].quantity * cart[productId].price;
+        saveCartToStorage();
+        updateCartCount();
+        updateCart();
+    }
+}
+
+function decreaseQuantity(productId) {
+    if (cart[productId] && cart[productId].quantity > 1) {
+        cart[productId].quantity -= 1;
+        cart[productId].total = cart[productId].quantity * cart[productId].price;
+        saveCartToStorage();
+        updateCartCount();
+        updateCart();
+    }
+}
+
+function removeFromCart(productId) {
+    if (cart[productId]) {
+        delete cart[productId];
+        saveCartToStorage();
+        updateCartCount();
+        updateCart();
+        showNotification('Item removed from cart', false);
+    }
+}
+
+function filterProducts(searchTerm) {
+    const productCards = document.querySelectorAll('.product-card');
+    
+    productCards.forEach(card => {
+        const productName = card.querySelector('h3').textContent.toLowerCase();
+        const productDescription = card.querySelector('.product-description').textContent.toLowerCase();
+        
+        if (productName.includes(searchTerm.toLowerCase()) || 
+            productDescription.includes(searchTerm.toLowerCase())) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function filterProductsByCategory(category) {
+    const productCards = document.querySelectorAll('.product-card');
+    
+    productCards.forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function showOrderPopup() {
+    if (!orderPopup) return;
+    
+    // Update order summary in popup
+    updateOrderSummary();
+    
+    orderPopup.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function hideOrderPopup() {
+    if (!orderPopup) return;
+    
+    orderPopup.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function updateOrderSummary() {
+    if (!popupOrderItems || !popupTotal) return;
+    
+    popupOrderItems.innerHTML = '';
+    let total = 0;
+    
+    Object.values(cart).forEach(item => {
+        total += item.total;
+        
+        const orderItem = document.createElement('div');
+        orderItem.className = 'order-item';
+        orderItem.innerHTML = `
+            <span>${item.name} × ${item.quantity}</span>
+            <span>₹${item.total}</span>
+        `;
+        
+        popupOrderItems.appendChild(orderItem);
+    });
+    
+    popupTotal.textContent = `₹${(total + 50).toFixed(2)}`;
+    
+    // Update UPI amount
+    const upiAmount = document.getElementById('upi-amount');
+    if (upiAmount) {
+        upiAmount.textContent = (total + 50).toFixed(2);
+    }
+}
+
+function handlePaymentMethodChange(e) {
+    if (!upiDetails) return;
+    
+    if (e.target.value === 'online') {
+        upiDetails.style.display = 'block';
+        updateOrderSummary(); // Update UPI amount
+    } else {
+        upiDetails.style.display = 'none';
+    }
+}
+
+function handleOrderSubmission(e) {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = new FormData(e.target);
+    const orderData = {
+        customerName: formData.get('customer-name'),
+        phone: formData.get('customer-phone'),
+        address: formData.get('customer-address'),
+        pincode: formData.get('customer-pincode'),
+        place: formData.get('customer-place'),
+        paymentMethod: formData.get('payment-method'),
+        items: Object.values(cart),
+        total: Object.values(cart).reduce((sum, item) => sum + item.total, 0) + 50,
+        timestamp: new Date().toISOString()
+    };
+    
+    // Save order
+    saveOrderToOwner(orderData);
+    
+    // Clear cart
+    cart = {};
+    saveCartToStorage();
+    updateCartCount();
+    updateCart();
+    
+    // Hide popup
+    hideOrderPopup();
+    
+    // Show success message
+    showNotification('Order placed successfully! We will contact you soon.', false, 'success');
+    
+    // Redirect to home page
+    showPage('home');
+}
+
+function printBillSummary() {
+    if (!printBill) return;
+    
+    // Update bill content
+    updateBillContent();
+    
+    // Show print bill
+    printBill.style.display = 'block';
+    
+    // Print
+    window.print();
+    
+    // Hide print bill after printing
+    setTimeout(() => {
+        printBill.style.display = 'none';
+    }, 1000);
+}
+
+function updateBillContent() {
+    if (!billItems || !billDate) return;
+    
+    // Update date
+    billDate.textContent = new Date().toLocaleDateString();
+    
+    // Update items
+    billItems.innerHTML = '';
+    let total = 0;
+    
+    Object.values(cart).forEach(item => {
+        total += item.total;
+        
+        const billItem = document.createElement('div');
+        billItem.className = 'bill-item';
+        billItem.innerHTML = `
+            <span>${item.name}</span>
+            <span>${item.quantity} × ₹${item.price}</span>
+            <span>₹${item.total}</span>
+        `;
+        
+        billItems.appendChild(billItem);
+    });
+    
+    // Add shipping
+    const shippingItem = document.createElement('div');
+    shippingItem.className = 'bill-item';
+    shippingItem.innerHTML = `
+        <span>Shipping</span>
+        <span></span>
+        <span>₹50</span>
+    `;
+    billItems.appendChild(shippingItem);
+    
+    // Add total
+    const totalItem = document.createElement('div');
+    totalItem.className = 'bill-item bill-total';
+    totalItem.innerHTML = `
+        <span><strong>Total</strong></span>
+        <span></span>
+        <span><strong>₹${(total + 50).toFixed(2)}</strong></span>
+    `;
+    billItems.appendChild(totalItem);
+}
+
+// Make functions globally accessible
+window.addToCart = addToCart;
+window.increaseQuantity = increaseQuantity;
+window.decreaseQuantity = decreaseQuantity;
+window.removeFromCart = removeFromCart;
+
+// Carousel Functionality
+function startCarousel() {
+    if (!carouselInner || carouselItems.length === 0) return;
+    
+    // Auto-slide every 5 seconds
+    slideInterval = setInterval(() => {
+        nextSlide();
+    }, 5000);
+    
+    // Pause on hover
+    const carousel = document.querySelector('.carousel');
+    if (carousel) {
+        carousel.addEventListener('mouseenter', () => {
+            clearInterval(slideInterval);
+        });
+        
+        carousel.addEventListener('mouseleave', () => {
+            slideInterval = setInterval(() => {
+                nextSlide();
+            }, 5000);
+        });
+    }
+}
+
+function nextSlide() {
+    if (!carouselInner || carouselItems.length === 0) return;
+    
+    currentSlide = (currentSlide + 1) % carouselItems.length;
+    updateCarousel();
+}
+
+function previousSlide() {
+    if (!carouselInner || carouselItems.length === 0) return;
+    
+    currentSlide = (currentSlide - 1 + carouselItems.length) % carouselItems.length;
+    updateCarousel();
+}
+
+function goToSlide(index) {
+    if (!carouselInner || carouselItems.length === 0) return;
+    
+    currentSlide = index;
+    updateCarousel();
+}
+
+function updateCarousel() {
+    if (!carouselInner || carouselItems.length === 0) return;
+    
+    // Update carousel position
+    const translateX = -currentSlide * 100;
+    carouselInner.style.transform = `translateX(${translateX}%)`;
+    
+    // Update active states
+    carouselItems.forEach((item, index) => {
+        item.classList.toggle('active', index === currentSlide);
+    });
+    
+    // Update indicators
+    indicators.forEach((indicator, index) => {
+        indicator.classList.toggle('active', index === currentSlide);
+    });
+}
+
+// Touch/Swipe support for mobile
+function setupCarouselTouch() {
+    const carousel = document.querySelector('.carousel');
+    if (!carousel) return;
+    
+    let startX = 0;
+    let endX = 0;
+    let isDragging = false;
+    
+    carousel.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        isDragging = true;
+        clearInterval(slideInterval); // Pause auto-slide during touch
+    }, { passive: true });
+    
+    carousel.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        endX = e.touches[0].clientX;
+    }, { passive: true });
+    
+    carousel.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        
+        const threshold = 50; // Minimum swipe distance
+        const diff = startX - endX;
+        
+        if (Math.abs(diff) > threshold) {
+            if (diff > 0) {
+                nextSlide(); // Swipe left - next slide
+            } else {
+                previousSlide(); // Swipe right - previous slide
+            }
+        }
+        
+        // Resume auto-slide
+        slideInterval = setInterval(() => {
+            nextSlide();
+        }, 5000);
+    }, { passive: true });
+    
+    // Mouse drag support for desktop
+    let mouseDown = false;
+    let mouseStartX = 0;
+    let mouseEndX = 0;
+    
+    carousel.addEventListener('mousedown', (e) => {
+        mouseDown = true;
+        mouseStartX = e.clientX;
+        clearInterval(slideInterval);
+        e.preventDefault();
+    });
+    
+    carousel.addEventListener('mousemove', (e) => {
+        if (!mouseDown) return;
+        mouseEndX = e.clientX;
+    });
+    
+    carousel.addEventListener('mouseup', () => {
+        if (!mouseDown) return;
+        mouseDown = false;
+        
+        const threshold = 50;
+        const diff = mouseStartX - mouseEndX;
+        
+        if (Math.abs(diff) > threshold) {
+            if (diff > 0) {
+                nextSlide();
+            } else {
+                previousSlide();
+            }
+        }
+        
+        slideInterval = setInterval(() => {
+            nextSlide();
+        }, 5000);
+    });
+    
+    carousel.addEventListener('mouseleave', () => {
+        mouseDown = false;
+        slideInterval = setInterval(() => {
+            nextSlide();
+        }, 5000);
+    });
+}
+
+// Mobile Menu Functionality
+function setupMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const navMenu = document.getElementById('nav-menu');
+    
+    if (mobileMenuBtn && navMenu) {
+        // Toggle mobile menu
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle active classes
+            mobileMenuBtn.classList.toggle('active');
+            navMenu.classList.toggle('active');
+            
+            // Prevent body scroll when menu is open
+            if (navMenu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Close menu when clicking on nav links
+        const navLinks = navMenu.querySelectorAll('a');
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                mobileMenuBtn.classList.remove('active');
+                navMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!navMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+                mobileMenuBtn.classList.remove('active');
+                navMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // Close menu on window resize if it gets too wide
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                mobileMenuBtn.classList.remove('active');
+                navMenu.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+    }
+}
+
+// Enhanced Event Listeners Setup
+function setupEventListeners() {
+    // Setup mobile menu
+    setupMobileMenu();
+    
+    // Navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.getAttribute('data-page');
+            if (page) {
+                showPage(page);
+            }
+        });
+    });
+
+    // Contact navigation
+    if (contactNav) {
+        contactNav.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('contact-footer').scrollIntoView({ 
+                behavior: 'smooth' 
+            });
+        });
+    }
+
+    // Continue shopping button
+    if (continueShoppingBtn) {
+        continueShoppingBtn.addEventListener('click', () => {
+            showPage('products');
+        });
+    }
+
+    // Place order button
+    if (placeOrderBtn) {
+        placeOrderBtn.addEventListener('click', () => {
+            if (Object.keys(cart).length === 0) {
+                showNotification('Your cart is empty!', true);
+                return;
+            }
+            showOrderPopup();
+        });
+    }
+
+    // Print summary button
+    if (printSummaryBtn) {
+        printSummaryBtn.addEventListener('click', () => {
+            if (Object.keys(cart).length === 0) {
+                showNotification('Your cart is empty!', true);
+                return;
+            }
+            printBillSummary();
+        });
+    }
+
+    // Product search
+    if (productSearch) {
+        productSearch.addEventListener('input', (e) => {
+            filterProducts(e.target.value);
+        });
+    }
+
+    // Filter buttons
+    filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            
+            const filter = button.getAttribute('data-filter');
+            filterProductsByCategory(filter);
+        });
+    });
+
+    // Category cards
+    categoryCards.forEach(card => {
+        card.addEventListener('click', () => {
+            const filter = card.getAttribute('data-filter');
+            showPage('products');
+            
+            setTimeout(() => {
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                const targetButton = document.querySelector(`[data-filter="${filter}"]`);
+                if (targetButton) {
+                    targetButton.classList.add('active');
+                }
+                filterProductsByCategory(filter);
+            }, 300);
+        });
+    });
+
+    // Carousel controls
+    if (prevButton) {
+        prevButton.addEventListener('click', () => {
+            previousSlide();
+        });
+    }
+
+    if (nextButton) {
+        nextButton.addEventListener('click', () => {
+            nextSlide();
+        });
+    }
+
+    // Carousel indicators
+    indicators.forEach((indicator, index) => {
+        indicator.addEventListener('click', () => {
+            goToSlide(index);
+        });
+    });
+
+    // Order popup close
+    if (closePopup) {
+        closePopup.addEventListener('click', hideOrderPopup);
+    }
+
+    if (cancelOrder) {
+        cancelOrder.addEventListener('click', hideOrderPopup);
+    }
+
+    // Click outside popup to close
+    if (orderPopup) {
+        orderPopup.addEventListener('click', (e) => {
+            if (e.target === orderPopup) {
+                hideOrderPopup();
+            }
+        });
+    }
+
+    // Payment method change
+    paymentMethods.forEach(method => {
+        method.addEventListener('change', handlePaymentMethodChange);
+    });
+
+    // Order form submission
+    if (orderForm) {
+        orderForm.addEventListener('submit', handleOrderSubmission);
+    }
+
+    // Scroll header hide/show
+    window.addEventListener('scroll', handleScroll);
+    
+    // Handle storage changes
+    window.addEventListener('storage', handleStorageUpdate);
+}
+
+// Initialize everything when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    init();
+    setupEventListeners();
+});
+
+// Hidden owner access - Add this for easy access
+// You can access owner portal by typing "owner" in browser console
+// or by visiting: customer.html?owner=AS123
+window.ownerAccess = function() {
+    const password = prompt("Enter Owner Password:");
+    if (password === 'AS123') {
+        window.location.href = 'owner.html?password=AS123';
+    } else {
+        alert("Incorrect password!");
+    }
+};
+
+// Check for owner access in URL
+window.addEventListener('load', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ownerParam = urlParams.get('owner');
+    
+    if (ownerParam === 'AS123') {
+        // Redirect to owner portal
+        window.location.href = 'owner.html?password=AS123';
+    }
+});
+
+// Console message for owner access
+console.log('🔐 Owner Access: Type ownerAccess() in console or visit customer.html?owner=AS123');

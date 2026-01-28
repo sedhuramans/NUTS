@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AS Nuts Owner Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="owner.css">
+</head>
+<body dir="ltr">
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <div class="logo-main">
+                    <div class="logo-text">AS<span class="logo-highlight">Nuts</span></div>
+                    <span class="owner-badge">Owner Portal</span>
+                </div>
+                <div class="logo-subtitle">Panruti, Tamil Nadu</div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="customer.html" class="nav-link">
+                        <i class="fas fa-store"></i> Back to Store
+                    </a></li>
+                    <li><a href="#" class="nav-link" data-page="dashboard">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a></li>
+                    <li><a href="#" class="nav-link" data-page="sms">
+                        <i class="fas fa-sms"></i> SMS Portal
+                    </a></li>
+                    <li><a href="#" class="nav-link" id="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Dashboard Page -->
+        <section id="dashboard" class="page active" style="display: block !important;">
+            <div class="owner-background">
+                <div class="owner-portal">
+                    <div class="owner-header">
+                        <h2>Owner Dashboard</h2>
+                        <p>Manage AS Nuts products and monitor customer orders</p>
+                    </div>
+                    
+                    <div class="stats-overview">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="total-orders">0</div>
+                                <div class="stat-label">Total Orders</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="total-revenue">₹0</div>
+                                <div class="stat-label">Total Revenue</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="total-products">0</div>
+                                <div class="stat-label">Products</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <div class="stat-value" id="total-customers">0</div>
+                                <div class="stat-label">Customers</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Navigation Tabs -->
+                    <div class="owner-tabs">
+                        <button class="owner-tab active" data-tab="edit">Edit Products</button>
+                        <button class="owner-tab" data-tab="sms">SMS Notifications</button>
+                    </div>
+
+                    <div class="owner-dashboard">
+                        <!-- Edit Products Tab -->
+                        <div id="edit-tab" class="tab-content active">
+                            <!-- Product Management -->
+                            <div class="product-management">
+                                <h3>Product Management</h3>
+                                
+                                <!-- Edit Existing Products -->
+                                <div class="edit-products-section">
+                                    <h4>Manage Products</h4>
+                                    <div class="products-filter">
+                                        <input type="text" class="form-control" id="product-search" placeholder="Search products...">
+                                    </div>
+                                    <div id="product-forms">
+                                        <!-- Product edit forms will be dynamically added here -->
+                                        <p class="no-data">Loading products...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SMS Tab -->
+                        <div id="sms-tab" class="tab-content">
+                            <!-- SMS Section -->
+                            <div class="sms-section">
+                                <h3>Customer Order Notifications</h3>
+                                <div class="sms-controls">
+                                    <button class="btn btn-sms" id="send-all-sms">
+                                        <i class="fas fa-paper-plane"></i> Send SMS to All
+                                    </button>
+                                    <button class="btn btn-secondary" id="refresh-orders">
+                                        <i class="fas fa-sync"></i> Refresh Orders
+                                    </button>
+                                </div>
+                                <div class="recent-orders">
+                                    <h4>Recent Orders</h4>
+                                    <div id="recent-orders-list">
+                                        <p class="no-data">Loading orders...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="owner-actions">
+                        <button class="btn btn-secondary" id="logout-btn-2">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                        <button class="btn btn-primary" id="save-changes">
+                            <i class="fas fa-save"></i> Save All Changes
+                        </button>
+                    </div>
+
+                    <!-- Order History Section -->
+                    <div class="order-history">
+                        <h3>Complete Order History</h3>
+                        <div class="order-filters">
+                            <button class="filter-btn active" data-status="all">All Orders</button>
+                            <button class="filter-btn" data-status="pending">Pending</button>
+                            <button class="filter-btn" data-status="completed">Completed</button>
+                            <button class="filter-btn" data-status="cancelled">Cancelled</button>
+                        </div>
+                        <div class="order-list" id="order-list">
+                            <p class="no-data">Loading orders...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        Welcome to AS Nuts Owner Portal!
+    </div>
+
+    <script>
+        // Direct access - no password required for this version
+        console.log('Loading AS Nuts Owner Portal...');
+        
+        // Set authentication
+        sessionStorage.setItem('ownerAuthenticated', 'true');
+        
+        // Show welcome message
+        setTimeout(() => {
+            const notification = document.getElementById('notification');
+            if (notification) {
+                notification.style.display = 'block';
+                notification.style.opacity = '1';
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    setTimeout(() => {
+                        notification.style.display = 'none';
+                    }, 300);
+                }, 3000);
+            }
+        }, 1000);
+    </script>
+    <script src="owner.js"></script>
+</body>
+</html>

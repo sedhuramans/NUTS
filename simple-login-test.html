@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Login Test</title>
+    <style>
+        :root {
+            --primary-blue: #1e3a8a;
+            --primary-dark: #1e40af;
+            --accent-gold: #f59e0b;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --text-white: #f8fafc;
+            --bg-light: #f1f5f9;
+            --border-light: #e2e8f0;
+            --success: #10b981;
+            --error: #ef4444;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, var(--bg-light) 0%, #e0e7ff 50%, #ddd6fe 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .login-container {
+            background: var(--text-white);
+            max-width: 450px;
+            width: 100%;
+            padding: 2.5rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+        }
+
+        h2 {
+            color: var(--primary-blue);
+       
+</head>
+<body>
+    <h2>🔐 Simple Login Test</h2>
+    
+    <form id="loginForm">
+        <input type="email" id="email" value="demo@srscashews.com" placeholder="Email" required>
+        <input type="password" id="password" value="demo123" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <button onclick="showUsers()">Show Stored Users</button>
+    <button onclick="clearStorage()">Clear Storage</button>
+
+    <script>
+        // Create default users immediately
+        const defaultUsers = [
+            { id: '1', name: 'Demo User', email: 'demo@srscashews.com', password: 'demo123' },
+            { id: '2', name: 'Test User', email: 'test@gmail.com', password: 'test123' }
+        ];
+        
+        // Store users
+        localStorage.setItem('srs_cashews_users', JSON.stringify(defaultUsers));
+        console.log('Users stored:', defaultUsers);
+        
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const result = document.getElementById('result');
+            
+            console.log('Login attempt:', { email, password });
+            
+            // Get users
+            const users = JSON.parse(localStorage.getItem('srs_cashews_users') || '[]');
+            console.log('Stored users:', users);
+            
+            // Find user
+            const user = users.find(u => u.email === email && u.password === password);
+            console.log('Found user:', user);
+            
+            if (user) {
+                result.className = 'result success';
+                result.innerHTML = `✅ Success! Welcome ${user.name}!<br><a href=".vscode/customer.html">Go to Store</a>`;
+                localStorage.setItem('srs_cashews_current_user', JSON.stringify(user));
+            } else {
+                result.className = 'result error';
+                result.innerHTML = '❌ Login failed! Check console for details.';
+            }
+        });
+        
+        function showUsers() {
+            const users = JSON.parse(localStorage.getItem('srs_cashews_users') || '[]');
+            alert('Stored users: ' + JSON.stringify(users, null, 2));
+        }
+        
+        function clearStorage() {
+            localStorage.clear();
+            alert('Storage cleared!');
+            location.reload();
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-/* SRS Cashews Owner Portal - Professional Black & Blue Theme */
+/* AS Nuts Owner Portal - Professional Black & Blue Theme */
 :root {
     --primary-blue: #1e3a8a;
     --primary-dark: #1e40af;
@@ -62,11 +62,22 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 0;
+    min-height: 70px;
 }
 
 .logo {
     font-size: 1.75rem;
     font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-main {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 .logo-text {
@@ -103,6 +114,9 @@ nav ul {
     display: flex;
     list-style: none;
     gap: 2rem;
+    align-items: center;
+    margin: 0;
+    padding: 0;
 }
 
 nav a {
@@ -111,7 +125,11 @@ nav a {
     font-weight: 600;
     transition: var(--transition);
     position: relative;
-    padding: 0.5rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
 }
 
 nav a::after {
@@ -132,6 +150,12 @@ nav a.active::after {
 
 nav a:hover {
     color: var(--accent-gold);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+nav a i {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
 }
 
 /* Page Styles */
@@ -242,6 +266,31 @@ nav a:hover {
     color: #94a3b8;
 }
 
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.default-credentials {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: rgba(30, 58, 138, 0.2);
+    border-radius: 8px;
+    border: 1px solid var(--primary-blue);
+    text-align: left;
+}
+
+.default-credentials p {
+    margin: 0.5rem 0;
+    color: var(--text-white);
+    font-size: 0.9rem;
+}
+
+.default-credentials strong {
+    color: var(--accent-gold);
+}
+
 /* Stats Overview */
 .stats-overview {
     display: grid;
@@ -345,6 +394,12 @@ nav a:hover {
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
 /* SMS Section */
@@ -1010,7 +1065,7 @@ textarea.form-control {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
+    padding: 0.875rem 1.5rem;
     border: none;
     border-radius: 8px;
     font-size: 0.9rem;
@@ -1021,6 +1076,8 @@ textarea.form-control {
     text-align: center;
     position: relative;
     overflow: hidden;
+    min-height: 44px; /* iOS recommended touch target */
+    touch-action: manipulation; /* Prevents zoom on double-tap */
 }
 
 .btn::before {
@@ -1182,6 +1239,22 @@ textarea.form-control {
     }
 }
 
+/* Tablet specific improvements */
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 15px;
+    }
+    
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    
+    .product-edit-form {
+        padding: 1rem;
+    }
+}
+
 /* Medium devices (tablets, less than 992px) */
 @media (max-width: 991.98px) {
     .container {
@@ -1192,15 +1265,22 @@ textarea.form-control {
         flex-direction: column;
         text-align: center;
         gap: 1rem;
+        padding: 1rem 0;
+    }
+    
+    .logo {
+        justify-content: center;
     }
     
     nav ul {
         justify-content: center;
         flex-wrap: wrap;
+        gap: 1rem;
     }
     
-    nav li {
-        margin: 0.5rem;
+    nav a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
     }
     
     .stats-overview {
@@ -1251,6 +1331,23 @@ textarea.form-control {
     .container {
         max-width: 720px;
         padding: 0 15px;
+    }
+    
+    .header-content {
+        padding: 0.75rem 0;
+    }
+    
+    .logo {
+        font-size: 1.5rem;
+    }
+    
+    nav ul {
+        gap: 0.75rem;
+    }
+    
+    nav a {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
     }
     
     .owner-header h2 {
@@ -1359,25 +1456,41 @@ textarea.form-control {
         padding: 0 10px;
     }
     
+    .header-content {
+        padding: 0.5rem 0;
+    }
+    
     .logo {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .logo-main {
+        flex-direction: column;
+        gap: 0.25rem;
+        align-items: center;
     }
     
     .logo-subtitle {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
     }
     
     .owner-badge {
-        font-size: 0.65rem;
-        padding: 0.15rem 0.6rem;
+        font-size: 0.6rem;
+        padding: 0.1rem 0.5rem;
+        margin-left: 0;
+        margin-top: 0.25rem;
     }
     
     nav ul {
         gap: 0.5rem;
+        flex-wrap: wrap;
     }
     
-    nav li {
-        margin: 0.25rem;
+    nav a {
+        padding: 0.35rem 0.5rem;
+        font-size: 0.8rem;
     }
     
     .owner-background {
@@ -1544,9 +1657,17 @@ textarea.form-control {
     }
     
     .image-preview {
+        height: 40px;
+        font-size: 0.6rem;
+    }
+    
+    .image-preview-container {
+        margin-top: 0.2rem;
+    }
+}eview {
         height: 120px;
     }
-}
+
 
 /* Touch device improvements */
 @media (hover: none) and (pointer: coarse) {
@@ -1686,4 +1807,161 @@ textarea.form-control {
         -webkit-overflow-scrolling: touch;
         scroll-behavior: smooth;
     }
+}/*
+ Ensure dashboard is always visible and no login forms appear */
+#dashboard {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+#dashboard.active {
+    display: block !important;
+}
+
+/* Hide any potential login forms */
+.login, .password-form, .login-form {
+    display: none !important;
+}
+
+/* Ensure page sections work correctly */
+.page {
+    display: none;
+}
+
+.page.active {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/* Force dashboard visibility */
+body #dashboard {
+    display: block !important;
+}/* Login
+ Form Styles */
+.password-form {
+    background: rgba(30, 41, 59, 0.95);
+    padding: 3rem;
+    border-radius: var(--radius);
+    text-align: center;
+    max-width: 400px;
+    margin: 2rem auto;
+    box-shadow: var(--shadow-xl);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.login-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-light));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    box-shadow: var(--shadow-lg);
+}
+
+.login-icon i {
+    font-size: 2rem;
+    color: var(--text-white);
+}
+
+.password-form h3 {
+    color: var(--text-white);
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.password-input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--text-white);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+}
+
+.password-input:focus {
+    outline: none;
+    border-color: var(--accent-gold);
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.password-input::placeholder {
+    color: rgba(248, 250, 252, 0.5);
+}
+
+.login-error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+    padding: 0.75rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.login-error i {
+    color: #ef4444;
+}
+
+/* Shake animation for wrong password */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Button styles for login */
+.password-form .btn {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+/* Ensure login page is visible by default */
+#login.page {
+    display: block;
+}
+
+#login.page.active {
+    display: block !important;
+}
+
+/* Hide dashboard by default */
+#dashboard.page {
+    display: none;
+}
+
+#dashboard.page.active {
+    display: block !important;
+}
+
+/* Override previous CSS that forced dashboard visibility */
+body #dashboard {
+    display: none;
+}
+
+body #dashboard.active {
+    display: block !important;
+}
+
+/* Remove the force display rules */
+#dashboard {
+    display: none !important;
+}
+
+#dashboard.active {
+    display: block !important;
 }

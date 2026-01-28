@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UPI Payment Test - AS Nuts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-blue: #1e3a8a;
+            --primary-dark: #1e40af;
+            --primary-light: #3b82f6;
+            --accent-gold: #f59e0b;
+            --accent-light: #fbbf24;
+            --dark-bg: #0f172a;
+            --dark-card: #1e293b;
+            --text-white: #f8fafc;
+            --bg-light: #f1f5f9;
+            --border-light: #e2e8f0;
+            --success: #10b981;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            background: linear-gradient(135deg, var(--bg-light) 0%, #e0e7ff 50%, #ddd6fe 100%);
+            min-height: 100vh;
+            padding: 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--text-white);
+            padding: 2rem;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-light);
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .info {
+            background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary-light);
+            border: 1px solid #bfdbfe;
+        }
+
+        .info h3 {
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .info p {
+            color: #374151;
+            margin-bottom: 0.5rem;
+        }
+
+        .info strong {
+            color: var(--primary-dark);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .amount-input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            margin: 0.75rem 0;
+            border: 2px solid var(--border-light);
+            border-radius: var(--radius);
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            background: #fafafa;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+            background: var(--text-white);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--success), #059669);
+            color: var(--text-white);
+            border: none;
+            border-radius: var(--radius);
+            margin: 1rem 0;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, #059669, var(--success));
+        }
+
+        .qr-container {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 2rem;
+            border: 2px dashed var(--primary-light);
+            border-radius: var(--radius);
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            transition: var(--transition);
+        }
+
+        .qr-container:hover {
+            border-color: var(--accent-gold);
+            background: linear-gradient(135deg, #fefce8, #fef3c7);
+        }
+
+        .qr-container img {
+            border: 3px solid var(--primary-light);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+
+        .qr-container img:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-gold);
+        }
+
+        .qr-container p {
+            margin-top: 1rem;
+            color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        h3 {
+            color: var(--primary-blue);
+            margin: 2rem 0 1rem 0;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .upi-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .upi-btn {
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--primary-dark));
+            color: var(--text-white);
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .upi-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            background: linear-gradient(135deg, var(--accent-gold), var(--primary-blue));
+        }
+
+        .upi-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Specific UPI app colors */
+        .upi-btn:nth-child(1) {
+            background: linear-gradient(135deg, #5f2d91, #7c3aed);
+        }
+
+        .upi-btn:nth-child(2) {
+            background: linear-gradient(135deg, #00baf2, #0ea5e9);
+        }
+
+        .upi-btn:nth-child(3) {
+            background: linear-gradient(135deg, #4285f4, #1d4ed8);
+        }
+
+        .upi-btn:nth-child(4) {
+            background: linear-gradient(135deg, #ff6b35, #ea580c);
+        }
+
+        .payment-note {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            padding: 1rem;
+            border-radius: var(--radius);
+            margin-top: 1.5rem;
+            border-left: 4px solid var(--accent-gold);
+            border: 1px solid #fbbf24;
+        }
+
+        .payment-note p {
+            color: #92400e;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .test-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            .upi-buttons {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+
+            .upi-btn {
+                padding: 0.875rem 1rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .test-container {
+                margin: 0.5rem;
+                padding: 1rem;
+            }
+
+            .upi-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .amount-input {
+                padding: 0.875rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 UPI Payment Test</h1>
+        
+        <div class="info">
+            <h3>📋 Test Information:</h3>
+            <p><strong>UPI ID:</strong> keerthivasan98406@okhdfcbank</p>
+            <p><strong>Merchant:</strong> AS Nuts</p>
+            <p><strong>Contact:</strong> 9840694616</p>
+        </div>
+
+        <label for="amount">Enter Amount (₹):</label>
+        <input type="number" id="amount" class="amount-input" value="100" min="1" placeholder="Enter amount">
+        
+        <button onclick="generateQR()" class="generate-btn">
+            🔄 Generate QR Code
+        </button>
+
+        <div id="qr-container" class="qr-container">
+            <p>Enter amount and click "Generate QR Code"</p>
+        </div>
+
+        <h3>📱 Pay with UPI Apps:</h3>
+        <div class="upi-buttons">
+            <button class="upi-btn phonepe-btn" onclick="payWithApp('phonepe')">
+                <i class="fas fa-mobile-alt" style="margin-right: 8px; font-size: 16px;"></i> PhonePe
+            </button>
+            <button class="upi-btn paytm-btn" onclick="payWithApp('paytm')">
+                <i class="fas fa-wallet" style="margin-right: 8px; font-size: 16px;"></i> Paytm
+            </button>
+            <button class="upi-btn googlepay-btn" onclick="payWithApp('googlepay')">
+                <i class="fab fa-google-pay" style="margin-right: 8px; font-size: 16px;"></i> Google Pay
+            </button>
+            <button class="upi-btn bhim-btn" onclick="payWithApp('bhim')">
+                <i class="fas fa-university" style="margin-right: 8px; font-size: 16px;"></i> BHIM
+            </button>
+        </div>
+
+        <div class="payment-note">
+            <p><i class="fas fa-info-circle"></i> <strong>Note:</strong> This is a test page. UPI apps will open with the payment details pre-filled.</p>
+        </div>
+    </div>
+
+    <script>
+        function generateQR() {
+            const amount = document.getElementById('amount').value;
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            const upiId = 'keerthivasan98406@okhdfcbank';
+            const merchantName = 'AS Nuts';
+            const transactionNote = 'Test Payment';
+            
+            // UPI URL format for QR code
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+            
+            // Generate QR code using QR Server API
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+            
+            const qrContainer = document.getElementById('qr-container');
+            qrContainer.innerHTML = `
+                <img src="${qrApiUrl}" alt="UPI QR Code" style="border: 2px solid #007bff; border-radius: 8px;">
+                <p>Scan with any UPI app to pay ₹${amount}</p>
+                <p style="font-size: 12px; color: #666;">UPI ID: ${upiId}</p>
+            `;
+        }
+
+        function payWithApp(app) {
+            const amount = document.getElementById('amount').value;
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            const upiId = 'keerthivasan98406@okhdfcbank';
+            const merchantName = 'AS Nuts';
+            const transactionNote = 'Test Payment';
+            
+            // UPI deep link format
+            const upiUrl = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(merchantName)}&am=${amount}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
+            
+            // App-specific deep links
+            const appUrls = {
+                phonepe: `phonepe://pay?${upiUrl.split('?')[1]}`,
+                paytm: `paytmmp://pay?${upiUrl.split('?')[1]}`,
+                googlepay: `tez://upi/pay?${upiUrl.split('?')[1]}`,
+                bhim: `bhim://pay?${upiUrl.split('?')[1]}`
+            };
+            
+            // Try to open the specific app, fallback to generic UPI
+            const appUrl = appUrls[app] || upiUrl;
+            
+            // Create a temporary link and click it
+            const link = document.createElement('a');
+            link.href = appUrl;
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert(`Opening ${app.charAt(0).toUpperCase() + app.slice(1)} for payment of ₹${amount}...`);
+        }
+
+        // Generate initial QR code
+        generateQR();
+    </script>
+</body>
+</html>

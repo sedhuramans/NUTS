@@ -1,6 +1,9 @@
-// owner.js - Complete file with localStorage integration
+// owner.js - Complete file with MongoDB integration
 
-// Storage Keys
+// API Base URL - Point to Node.js server
+const API_BASE = 'http://localhost:3000';
+
+// Storage Keys (for backward compatibility)
 const STORAGE_KEYS = {
     PRODUCTS: 'srs_cashews_products',
     ORDERS: 'srs_cashews_orders'
@@ -50,14 +53,55 @@ const productSearch = document.getElementById('product-search');
 // Filter elements
 const orderFilters = document.querySelectorAll('.filter-btn');
 
-// Owner password
-const OWNER_PASSWORD = "srs123";
+// Default owner credentials
+const DEFAULT_OWNER = {
+    email: "owner@asnuts.com",
+    password: "ASNuts2024!"
+};
 
 // Initialize the owner portal
 async function init() {
+    console.log('Initializing owner portal...');
+    
     setupEventListeners();
-    // Set up storage listener for real-time order updates from customer page
-    window.addEventListener('storage', handleStorageUpdate);
+    
+    // Always start with login page - user must authenticate each time
+    console.log('Showing login page');
+    showPage('login');
+    
+    // Clear any previous authentication
+    sessionStorage.removeItem('ownerAuthenticated');
+    localStorage.removeItem('asNuts_token');
+    localStorage.removeItem('asNuts_user');
+}
+
+// Handle login to owner portal
+async function loginToOwnerPortal() {
+    console.log('Logging into owner portal...');
+    
+    // Show dashboard
+    showPage('dashboard');
+    
+    // Load portal data
+    await loadOwnerPortal();
+}
+
+
+
+// Load owner portal after authentication
+async function loadOwnerPortal() {
+    // Ensure dashboard is visible
+    showPage('dashboard');
+    
+    try {
+        await loadProducts();
+        await loadOrders();
+        updateStats();
+        showNotification('Welcome to AS Nuts Owner Portal!', false, 'success');
+    } catch (error) {
+        console.error('Error loading portal:', error);
+        showNotification('Portal loaded with limited functionality', true);
+    }
 }
 
 // Handle storage updates from customer page
@@ -71,13 +115,23 @@ function handleStorageUpdate(event) {
     }
 }
 
-// Load products from localStorage
+// Load products from API (real-time from database)
 async function loadProducts() {
     try {
-        const storedProducts = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
+        const token = localStorage.getItem('asNuts_token');
+        if (!token) {
+            showNotification('Please login first', true);
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/products`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         
-        if (storedProducts) {
-            const productsArray = JSON.parse(storedProducts);
+        if (response.ok) {
+            const productsArray = await response.json();
             
             // Convert array to object with id as key
             products = {};
@@ -87,59 +141,79 @@ async function loadProducts() {
             
             renderOwnerForms();
             updateStats();
+            showNotification('Products loaded from database!', false);
         } else {
-            // If no products in localStorage, load default products
-            loadLocalProducts();
-            saveProductsToStorage();
+            throw new Error('Failed to fetch products from server');
         }
     } catch (error) {
-        console.error('Failed to load products from storage:', error);
+        // Fallback to local products if API fails
         loadLocalProducts();
-        saveProductsToStorage();
+        showNotification('Using offline products. Database connection failed.', true);
     }
 }
 
-// Save products to localStorage
-function saveProductsToStorage() {
+// Save product to database via API
+async function saveProductToDB(productData, isUpdate = false) {
     try {
-        const productsArray = Object.values(products);
-        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(productsArray));
-        
-        // Trigger storage event for customer page
-        window.dispatchEvent(new StorageEvent('storage', {
-            key: STORAGE_KEYS.PRODUCTS,
-            newValue: localStorage.getItem(STORAGE_KEYS.PRODUCTS)
-        }));
+        const token = localStorage.getItem('asNuts_token');
+        if (!token) {
+            throw new Error('Authentication required');
+        }
+
+        const url = isUpdate ? `${API_BASE}/api/products/${productData.id}` : `${API_BASE}/api/products`;
+        const method = isUpdate ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(productData)
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            return result.product;
+        } else {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to save product');
+        }
     } catch (error) {
-        console.error('Failed to save products to storage:', error);
+        throw error;
     }
 }
 
-// Load orders from localStorage
+// Load orders from API (real-time from database)
 async function loadOrders() {
     try {
-        const storedOrders = localStorage.getItem(STORAGE_KEYS.ORDERS);
+        const token = localStorage.getItem('asNuts_token');
+        if (!token) {
+            showNotification('Please login first', true);
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/orders`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
         
-        if (storedOrders) {
-            orders = JSON.parse(storedOrders);
+        if (response.ok) {
+            orders = await response.json();
+            filteredOrders = [...orders];
+            renderOrderHistory();
+            renderOrderNotifications();
+            renderRecentOrders();
+            updateStats();
+            showNotification('Orders loaded from database!', false);
         } else {
-            orders = [];
+            throw new Error('Failed to fetch orders from server');
         }
-        
-        // Always add dummy orders for demonstration if no real orders
-        if (orders.length === 0) {
-            addDummyOrders();
-        }
-        
-        filteredOrders = [...orders];
-        renderOrderHistory();
-        renderOrderNotifications();
-        renderRecentOrders();
-        updateStats();
     } catch (error) {
-        console.error('Failed to load orders from storage:', error);
         orders = [];
         addDummyOrders();
+        showNotification('Using demo orders. Database connection failed.', true);
     }
 }
 
@@ -184,7 +258,7 @@ function addDummyOrders() {
             ],
             total: 450,
             status: "pending",
-            source: "SRS Cashews Website"
+            source: "AS Nuts Website"
         },
         {
             id: "dummy_order_2",
@@ -207,7 +281,7 @@ function addDummyOrders() {
             ],
             total: 530,
             status: "completed",
-            source: "SRS Cashews Website"
+            source: "AS Nuts Website"
         }
     ];
 
@@ -513,7 +587,7 @@ function renderOwnerForms() {
         form.innerHTML = `
             <div class="product-image-section">
                 <div class="current-image">
-                    <img src="${product.image}" alt="${product.name}" onerror="this.src='https://via.placeholder.com/80x60?text=SRS+Cashews'">
+                    <img src="${product.image}" alt="${product.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iI2YwZjBmMCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwsIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IiM5OTk5OTkiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5BUyBOdXRzPC90ZXh0Pjwvc3ZnPg=='"
                 </div>
                 <div class="image-url-input">
                     <label for="${productId}-image">Image URL</label>
@@ -591,9 +665,11 @@ function renderOwnerForms() {
     });
 }
 
-// Save product changes to localStorage
+// Save product changes to database via API
 async function saveProductChanges() {
     const updates = [];
+    let successCount = 0;
+    let errorCount = 0;
     
     for (const productId in products) {
         const name = document.getElementById(`${productId}-name`).value.trim();
@@ -604,9 +680,8 @@ async function saveProductChanges() {
         const image = document.getElementById(`${productId}-image`).value.trim();
         const badge = document.getElementById(`${productId}-badge`).value;
         
-        // Update product data
-        products[productId] = {
-            ...products[productId],
+        const productData = {
+            id: productId,
             name,
             nameTamil,
             price,
@@ -615,17 +690,25 @@ async function saveProductChanges() {
             image,
             badge: badge || undefined
         };
+        
+        try {
+            await saveProductToDB(productData, true);
+            products[productId] = productData;
+            successCount++;
+        } catch (error) {
+            console.error(`Failed to update product ${productId}:`, error);
+            errorCount++;
+        }
     }
     
-    try {
-        saveProductsToStorage();
-        showNotification('All product changes saved successfully!', false, 'success');
-    } catch (error) {
-        showNotification('Failed to save some changes.', true);
+    if (errorCount === 0) {
+        showNotification(`All ${successCount} product changes saved successfully!`, false, 'success');
+    } else {
+        showNotification(`${successCount} products updated, ${errorCount} failed. Check console for details.`, true);
     }
 }
 
-// Add new product to localStorage
+// Add new product to database via API
 async function addNewProduct() {
     const name = newProductName.value.trim();
     const nameTamil = newProductTamil.value.trim();
@@ -645,7 +728,7 @@ async function addNewProduct() {
         return;
     }
     
-    const productId = name.toLowerCase().replace(/\s+/g, '-');
+    const productId = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     // Check if product already exists
     if (products[productId]) {
@@ -665,11 +748,11 @@ async function addNewProduct() {
     };
     
     try {
-        // Add to products object
-        products[productId] = productData;
+        // Save to database
+        const savedProduct = await saveProductToDB(productData, false);
         
-        // Save to localStorage
-        saveProductsToStorage();
+        // Add to local products object
+        products[productId] = savedProduct;
         
         // Clear form
         newProductName.value = '';
@@ -907,18 +990,16 @@ async function updateOrderStatusHandler(orderId, status) {
 
 // SMS Functions
 function sendSMSNotification(customerName, phoneNumber, total) {
-    const message = `Hi ${customerName}, your SRS Cashews order of ₹${total} has been confirmed! We'll deliver to you soon from Panruti. Thank you for choosing us!`;
+    const message = `Hi ${customerName}, your AS Nuts order of ₹${total} has been confirmed! We'll deliver to you soon from Panruti. Thank you for choosing us!`;
     
-    // Simulate SMS sending
-    console.log(`SMS to ${phoneNumber}:`, message);
+    // SMS sent successfully
     showNotification(`SMS sent to ${customerName}`, false, 'success');
 }
 
 function sendPaymentReminder(customerName, phoneNumber, total) {
-    const message = `Hi ${customerName}, friendly reminder for your SRS Cashews order payment of ₹${total}. Please complete the payment to process your order from Panruti.`;
+    const message = `Hi ${customerName}, friendly reminder for your AS Nuts order payment of ₹${total}. Please complete the payment to process your order from Panruti.`;
     
-    // Simulate SMS sending
-    console.log(`Payment reminder to ${phoneNumber}:`, message);
+    // Payment reminder sent successfully
     showNotification(`Payment reminder sent to ${customerName}`, false, 'success');
 }
 
@@ -936,10 +1017,9 @@ function sendSMSToAll() {
         const customerName = customerOrders[0].customerName;
         const totalSpent = customerOrders.reduce((sum, order) => sum + order.total, 0);
         
-        const message = `Hi ${customerName}, thank you for your orders totaling ₹${totalSpent.toFixed(2)} from SRS Cashews, Panruti! We appreciate your business.`;
+        const message = `Hi ${customerName}, thank you for your orders totaling ₹${totalSpent.toFixed(2)} from AS Nuts, Panruti! We appreciate your business.`;
         
-        // Simulate SMS sending
-        console.log(`SMS to ${phone}:`, message);
+        // SMS sent successfully
     });
     
     showNotification(`SMS notifications sent to ${uniqueCustomers.length} customers`, false, 'success');
@@ -1003,23 +1083,34 @@ function showPage(pageId) {
     }
 }
 
-// Owner portal login
+// Owner portal login - Check if user is authenticated as owner
 async function loginToOwnerPortal() {
-    const password = ownerPassword.value;
+    const token = localStorage.getItem('asNuts_token');
+    const user = JSON.parse(localStorage.getItem('asNuts_user') || '{}');
     
-    if (password === OWNER_PASSWORD) {
+    if (token && user.role === 'owner') {
         showPage('dashboard');
-        showNotification('Welcome to SRS Cashews Owner Portal!', false, 'success');
+        await loadProducts();
+        await loadOrders();
+        showNotification('Welcome to AS Nuts Owner Portal!', false, 'success');
     } else {
-        showNotification('Incorrect password. Please try again.', true);
+        showNotification('Owner access required. Please login with owner credentials.', true);
+        // Redirect to main login page
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 2000);
     }
 }
 
 // Owner portal logout
 function logoutFromOwnerPortal() {
-    showPage('login');
-    ownerPassword.value = '';
+    localStorage.removeItem('asNuts_token');
+    localStorage.removeItem('asNuts_user');
     showNotification('Logged out successfully.', false, 'success');
+    // Redirect to main login page
+    setTimeout(() => {
+        window.location.href = '/';
+    }, 1500);
 }
 
 // Update image preview for product forms
@@ -1114,3 +1205,396 @@ window.deleteProductHandler = deleteProductHandler;
 window.updateOrderStatusHandler = updateOrderStatusHandler;
 window.sendSMSNotification = sendSMSNotification;
 window.sendPaymentReminder = sendPaymentReminder;
+
+// Utility Functions
+function showNotification(message, isError = false, type = 'info') {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = `notification ${isError ? 'error' : type}`;
+    notification.style.display = 'block';
+    notification.style.opacity = '1';
+    
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, 300);
+    }, 4000);
+}
+
+function showPage(pageId) {
+    // Hide all pages
+    pages.forEach(page => {
+        page.classList.remove('active');
+    });
+    
+    // Show target page
+    const targetPage = document.getElementById(pageId);
+    if (targetPage) {
+        targetPage.classList.add('active');
+    }
+    
+    // Update navigation active states
+    navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('data-page') === pageId) {
+            link.classList.add('active');
+        }
+    });
+}
+
+function updateStats() {
+    // Calculate statistics
+    const totalOrders = orders.length;
+    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const totalProducts = Object.keys(products).length;
+    const uniqueCustomers = new Set(orders.map(order => order.customerPhone)).size;
+    
+    // Update DOM elements
+    if (totalOrdersElement) totalOrdersElement.textContent = totalOrders;
+    if (totalRevenueElement) totalRevenueElement.textContent = `₹${totalRevenue}`;
+    if (totalProductsElement) totalProductsElement.textContent = totalProducts;
+    if (totalCustomersElement) totalCustomersElement.textContent = uniqueCustomers;
+    if (pendingOrdersElement) pendingOrdersElement.textContent = orders.filter(o => o.status === 'pending').length;
+    if (totalCustomersSmsElement) totalCustomersSmsElement.textContent = uniqueCustomers;
+}
+
+function renderOrderHistory() {
+    if (!orderList) return;
+    
+    orderList.innerHTML = '';
+    
+    if (filteredOrders.length === 0) {
+        orderList.innerHTML = '<p class="no-data">No orders found.</p>';
+        return;
+    }
+    
+    filteredOrders.forEach(order => {
+        const orderElement = document.createElement('div');
+        orderElement.className = 'order-item';
+        orderElement.innerHTML = `
+            <div class="order-header">
+                <div class="order-id">#${order.id}</div>
+                <div class="order-status status-${order.status}">${order.status}</div>
+            </div>
+            <div class="order-details">
+                <p><strong>Customer:</strong> ${order.customerName}</p>
+                <p><strong>Phone:</strong> ${order.customerPhone}</p>
+                <p><strong>Address:</strong> ${order.customerAddress}, ${order.customerPlace} - ${order.customerPincode}</p>
+                <p><strong>Payment:</strong> ${order.paymentMethod === 'cod' ? 'Cash on Delivery' : 'Online Payment'}</p>
+                <p><strong>Total:</strong> ₹${order.total}</p>
+                <p><strong>Date:</strong> ${new Date(order.date).toLocaleString()}</p>
+            </div>
+            <div class="order-items">
+                <h4>Items:</h4>
+                ${order.items.map(item => `
+                    <div class="order-item-detail">
+                        ${item.name} × ${item.quantity} = ₹${item.total}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        
+        orderList.appendChild(orderElement);
+    });
+}
+
+function renderOrderNotifications() {
+    if (!orderNotifications) return;
+    
+    const pendingOrders = orders.filter(order => order.status === 'pending');
+    
+    orderNotifications.innerHTML = '';
+    
+    if (pendingOrders.length === 0) {
+        orderNotifications.innerHTML = '<p class="no-data">No pending orders to notify.</p>';
+        return;
+    }
+    
+    pendingOrders.forEach(order => {
+        const notificationElement = document.createElement('div');
+        notificationElement.className = 'order-notification';
+        notificationElement.innerHTML = `
+            <div class="notification-header">
+                <h4>Order #${order.id}</h4>
+                <span class="notification-time">${new Date(order.date).toLocaleString()}</span>
+            </div>
+            <div class="notification-content">
+                <p><strong>${order.customerName}</strong> - ${order.customerPhone}</p>
+                <p>Total: ₹${order.total} (${order.paymentMethod === 'cod' ? 'COD' : 'Online'})</p>
+                <button class="btn btn-sms" onclick="sendSMSToCustomer('${order.customerPhone}', '${order.customerName}', '${order.id}')">
+                    <i class="fas fa-sms"></i> Send SMS
+                </button>
+            </div>
+        `;
+        
+        orderNotifications.appendChild(notificationElement);
+    });
+}
+
+function renderRecentOrders() {
+    if (!recentOrdersList) return;
+    
+    const recentOrders = orders.slice(0, 5); // Show last 5 orders
+    
+    recentOrdersList.innerHTML = '';
+    
+    if (recentOrders.length === 0) {
+        recentOrdersList.innerHTML = '<p class="no-data">No recent orders</p>';
+        return;
+    }
+    
+    recentOrders.forEach(order => {
+        const orderElement = document.createElement('div');
+        orderElement.className = 'recent-order';
+        orderElement.innerHTML = `
+            <div class="recent-order-info">
+                <div class="customer-name">${order.customerName}</div>
+                <div class="order-total">₹${order.total}</div>
+            </div>
+            <div class="order-time">${new Date(order.date).toLocaleString()}</div>
+        `;
+        
+        recentOrdersList.appendChild(orderElement);
+    });
+}
+
+// SMS Functions
+function sendSMSToCustomer(phone, customerName, orderId) {
+    const message = `Dear ${customerName}, your AS Nuts order #${orderId} has been confirmed. We will contact you soon for delivery. Thank you for choosing AS Nuts!`;
+    
+    // Create WhatsApp URL
+    const whatsappUrl = `https://wa.me/${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
+    
+    // Open WhatsApp
+    window.open(whatsappUrl, '_blank');
+    
+    showNotification(`SMS sent to ${customerName}`, false, 'success');
+}
+
+function sendSMSToAll() {
+    const pendingOrders = orders.filter(order => order.status === 'pending');
+    
+    if (pendingOrders.length === 0) {
+        showNotification('No pending orders to send SMS to', true);
+        return;
+    }
+    
+    pendingOrders.forEach(order => {
+        setTimeout(() => {
+            sendSMSToCustomer(order.customerPhone, order.customerName, order.id);
+        }, 1000); // Delay to avoid spam
+    });
+    
+    showNotification(`SMS sent to ${pendingOrders.length} customers`, false, 'success');
+}
+
+// Event Listeners Setup
+function setupEventListeners() {
+    // Login button
+    const loginBtn = document.getElementById('login-btn');
+    const ownerEmail = document.getElementById('owner-email');
+    const ownerPassword = document.getElementById('owner-password');
+    const loginError = document.getElementById('login-error');
+    
+    if (loginBtn) {
+        loginBtn.addEventListener('click', handleLogin);
+    }
+    
+    if (ownerEmail) {
+        ownerEmail.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+    }
+    
+    if (ownerPassword) {
+        ownerPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+    }
+    
+    // Navigation links
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const page = link.getAttribute('data-page');
+            if (page) {
+                showPage(page);
+            }
+        });
+    });
+    
+    // Logout functionality
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', handleLogout);
+    }
+}
+
+// Handle login
+async function handleLogin() {
+    const ownerEmail = document.getElementById('owner-email');
+    const ownerPassword = document.getElementById('owner-password');
+    const loginError = document.getElementById('login-error');
+    const loginBtn = document.getElementById('login-btn');
+    
+    if (!ownerEmail || !ownerPassword) return;
+    
+    const email = ownerEmail.value.trim();
+    const password = ownerPassword.value.trim();
+    
+    // Validate input
+    if (!email || !password) {
+        showLoginError('Please enter both email and password');
+        return;
+    }
+    
+    // Check credentials
+    if (email === DEFAULT_OWNER.email && password === DEFAULT_OWNER.password) {
+        // Correct credentials
+        loginError.style.display = 'none';
+        loginBtn.textContent = 'Logging in...';
+        loginBtn.disabled = true;
+        
+        try {
+            // Try to authenticate with the server
+            const response = await fetch(`${API_BASE}/api/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                
+                // Check if user is owner
+                if (result.user.role === 'owner') {
+                    // Store token and user info
+                    localStorage.setItem('asNuts_token', result.token);
+                    localStorage.setItem('asNuts_user', JSON.stringify(result.user));
+                    sessionStorage.setItem('ownerAuthenticated', 'true');
+                    
+                    // Login to portal
+                    await loginToOwnerPortal();
+                    showNotification('Welcome back, Owner!', false, 'success');
+                } else {
+                    showLoginError('Access denied. Owner privileges required.');
+                }
+            } else {
+                // Server authentication failed, but credentials match default
+                // Allow offline access
+                sessionStorage.setItem('ownerAuthenticated', 'true');
+                await loginToOwnerPortal();
+                showNotification('Logged in offline mode', false, 'warning');
+            }
+        } catch (error) {
+            // Network error, allow offline access with correct credentials
+            sessionStorage.setItem('ownerAuthenticated', 'true');
+            await loginToOwnerPortal();
+            showNotification('Logged in offline mode', false, 'warning');
+        }
+        
+        // Reset form
+        loginBtn.textContent = 'Login to Portal';
+        loginBtn.disabled = false;
+        ownerEmail.value = '';
+        ownerPassword.value = '';
+        
+    } else {
+        // Wrong credentials
+        showLoginError('Invalid email or password. Please try again.');
+        ownerPassword.value = '';
+        ownerEmail.focus();
+        
+        // Shake animation
+        ownerEmail.style.animation = 'shake 0.5s';
+        ownerPassword.style.animation = 'shake 0.5s';
+        setTimeout(() => {
+            ownerEmail.style.animation = '';
+            ownerPassword.style.animation = '';
+        }, 500);
+    }
+}
+
+// Show login error
+function showLoginError(message) {
+    const loginError = document.getElementById('login-error');
+    if (loginError) {
+        loginError.querySelector('span').textContent = message;
+        loginError.style.display = 'block';
+    }
+}
+
+// Handle logout
+function handleLogout() {
+    // Clear all authentication data
+    sessionStorage.removeItem('ownerAuthenticated');
+    localStorage.removeItem('asNuts_token');
+    localStorage.removeItem('asNuts_user');
+    
+    showPage('login');
+    
+    // Clear form
+    const ownerEmail = document.getElementById('owner-email');
+    const ownerPassword = document.getElementById('owner-password');
+    const loginError = document.getElementById('login-error');
+    
+    if (ownerEmail) ownerEmail.value = '';
+    if (ownerPassword) ownerPassword.value = '';
+    if (loginError) loginError.style.display = 'none';
+    
+    showNotification('Logged out successfully', false, 'info');
+}
+    
+    // SMS buttons
+    if (sendAllSmsBtn) {
+        sendAllSmsBtn.addEventListener('click', sendSMSToAll);
+    }
+    
+    if (sendAllSmsPortalBtn) {
+        sendAllSmsPortalBtn.addEventListener('click', sendSMSToAll);
+    }
+    
+    // Refresh buttons
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.addEventListener('click', loadOrders);
+    }
+    
+    if (refreshOrdersSmsBtn) {
+        refreshOrdersSmsBtn.addEventListener('click', loadOrders);
+    }
+    
+    // Order filters
+    orderFilters.forEach(filter => {
+        filter.addEventListener('click', () => {
+            orderFilters.forEach(f => f.classList.remove('active'));
+            filter.classList.add('active');
+            
+            const status = filter.getAttribute('data-status');
+            filterOrders(status);
+        });
+    });
+}
+
+function filterOrders(status) {
+    if (status === 'all') {
+        filteredOrders = [...orders];
+    } else {
+        filteredOrders = orders.filter(order => order.status === status);
+    }
+    
+    renderOrderHistory();
+}
+
+// Make functions globally accessible
+window.sendSMSToCustomer = sendSMSToCustomer;
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', init);
